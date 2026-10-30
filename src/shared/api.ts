@@ -95,6 +95,7 @@ export interface FlowTrayApi {
     openOnboarding(): Promise<void>
     openSettings(section?: SettingsSection): Promise<void>
     clearAll(): Promise<void>
+    sweep(): Promise<void>
     flush(): Promise<void>
   }
 }

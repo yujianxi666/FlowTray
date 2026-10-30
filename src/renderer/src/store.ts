@@ -113,7 +113,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         infoId: state.infoId && ids.has(state.infoId) ? state.infoId : null,
         menu: state.menu && ids.has(state.menu.itemId) ? state.menu : null,
         undoDismissedAt:
-          state.undoDismissedAt && snapshot.undo?.expiresAt === state.undoDismissedAt
+          snapshot.undo && snapshot.undo.expiresAt !== state.undoDismissedAt
             ? null
             : state.undoDismissedAt
       }

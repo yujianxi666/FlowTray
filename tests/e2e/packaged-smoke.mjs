@@ -1,0 +1,47 @@
+import { _electron as electron } from 'playwright-core'
+import { existsSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+const root = process.cwd()
+const exe = join(root, 'release', 'win-unpacked', 'FlowTray.exe')
+if (!existsSync(exe)) throw new Error(`missing packaged app: ${exe}`)
+const userData = mkdtempSync(join(tmpdir(), 'flowtray-packaged-'))
+const env = { ...process.env }
+delete env.ELECTRON_RUN_AS_NODE
+env.FLOWTRAY_USER_DATA = userData
+env.FLOWTRAY_E2E = '1'
+
+const app = await electron.launch({
+  executablePath: exe,
+  args: [],
+  cwd: root,
+  env
+})
+const page = await app.firstWindow()
+await page.waitForTimeout(1400)
+console.log('TITLE', await page.title())
+console.log('URL', page.url())
+if (await page.locator('[data-testid="onboarding"]').count()) {
+  await page.locator('.onboarding-skip').click()
+  await page.waitForTimeout(400)
+}
+await app.evaluate(async ({ clipboard }) => {
+  await clipboard.writeText('打包冒烟测试·FlowTray')
+})
+await page.locator('[data-testid="add-clipboard"]').click()
+await page.waitForTimeout(600)
+const count = await page.locator('[data-testid="item-card"]').count()
+console.log('CARDS', count)
+console.log('DB_EXISTS', existsSync(join(userData, 'flowtray.db')))
+console.log('STORAGE_EXISTS', existsSync(join(userData, 'storage')))
+const versions = await app.evaluate(({ app }) => ({
+  version: app.getVersion(),
+  packaged: app.isPackaged,
+  resources: process.resourcesPath
+}))
+console.log('APP', JSON.stringify(versions))
+await page.locator('[data-testid="shelf"]').screenshot({ path: join(root, 'docs', 'screenshots', 'packaged-smoke.png') })
+if (count !== 1) throw new Error('packaged app did not add a clipboard card')
+console.log('PACKAGED_SMOKE_OK')
+await app.evaluate(({ app }) => app.exit(0)).catch(() => {})

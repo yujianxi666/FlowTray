@@ -97,7 +97,7 @@ export function SelectionBar({
             title={allPinned ? '取消固定' : '固定所选'}
           >
             {allPinned ? <PinOff size={14} strokeWidth={1.8} /> : <Pin size={14} strokeWidth={1.8} />}
-            {allPinned ? '取消' : '固定'}
+            {allPinned ? '取消固定' : '固定'}
           </button>
         )}
         <button
@@ -116,7 +116,7 @@ export function SelectionBar({
           title="取消选择"
         >
           <X size={14} strokeWidth={1.8} />
-          取消
+          取消选择
         </button>
       </div>
     </div>

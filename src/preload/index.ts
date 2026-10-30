@@ -96,6 +96,7 @@ if (e2eEnabled) {
     openSettings: (section?: SettingsSection) =>
       ipcRenderer.invoke(IPC.e2eOpenSettings, { section }),
     clearAll: () => ipcRenderer.invoke(IPC.e2eClearAll),
+    sweep: () => ipcRenderer.invoke(IPC.e2eSweep),
     flush: () => ipcRenderer.invoke(IPC.e2eFlush)
   }
 }

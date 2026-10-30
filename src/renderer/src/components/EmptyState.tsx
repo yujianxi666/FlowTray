@@ -86,77 +86,77 @@ function EmptyArt() {
   return (
     <svg
       className="empty-art"
-      width="150"
-      height="118"
-      viewBox="0 0 150 118"
+      width="164"
+      height="128"
+      viewBox="0 0 164 128"
       fill="none"
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id="empty-card" x1="45" y1="27" x2="102" y2="72" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#D8FF5C" stopOpacity="0.22" />
-          <stop offset="1" stopColor="#D8FF5C" stopOpacity="0.04" />
+        <linearGradient id="empty-card" x1="54" y1="28" x2="112" y2="76" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#D8FF5C" stopOpacity="0.34" />
+          <stop offset="1" stopColor="#D8FF5C" stopOpacity="0.1" />
         </linearGradient>
       </defs>
-      <g opacity="0.55">
+      <g opacity="0.8">
         <rect
-          x="23"
-          y="15"
-          width="48"
-          height="34"
-          rx="7"
-          transform="rotate(-8 23 15)"
-          fill="#F4F1E8"
-          fillOpacity="0.05"
-          stroke="#F4F1E8"
-          strokeOpacity="0.16"
+          x="25"
+          y="16"
+          width="50"
+          height="36"
+          rx="8"
+          transform="rotate(-8 25 16)"
+          fill="currentColor"
+          fillOpacity="0.06"
+          stroke="currentColor"
+          strokeOpacity="0.3"
         />
-        <circle cx="34" cy="27" r="3" fill="#D8FF5C" fillOpacity="0.7" />
-        <rect x="41" y="24" width="18" height="2" rx="1" fill="#F4F1E8" fillOpacity="0.18" />
-        <rect x="41" y="30" width="12" height="2" rx="1" fill="#F4F1E8" fillOpacity="0.12" />
+        <circle cx="37" cy="29" r="3.2" fill="#D8FF5C" fillOpacity="0.8" />
+        <rect x="44" y="26" width="19" height="2" rx="1" fill="currentColor" fillOpacity="0.32" />
+        <rect x="44" y="32" width="13" height="2" rx="1" fill="currentColor" fillOpacity="0.22" />
       </g>
       <g className="empty-float">
         <rect
-          x="58"
+          x="62"
           y="24"
-          width="56"
-          height="40"
-          rx="8"
+          width="60"
+          height="43"
+          rx="9"
           fill="url(#empty-card)"
           stroke="#D8FF5C"
-          strokeOpacity="0.5"
+          strokeOpacity="0.8"
         />
-        <circle cx="71" cy="37" r="4.5" fill="#D8FF5C" fillOpacity="0.9" />
-        <rect x="80" y="34" width="24" height="2.5" rx="1.25" fill="#F4F1E8" fillOpacity="0.65" />
-        <rect x="80" y="41" width="16" height="2" rx="1" fill="#F4F1E8" fillOpacity="0.3" />
-        <path d="M69 51h33" stroke="#D8FF5C" strokeOpacity="0.4" strokeLinecap="round" />
+        <circle cx="76" cy="38" r="4.8" fill="#D8FF5C" fillOpacity="0.95" />
+        <rect x="86" y="35" width="25" height="2.5" rx="1.25" fill="currentColor" fillOpacity="0.8" />
+        <rect x="86" y="42" width="17" height="2" rx="1" fill="currentColor" fillOpacity="0.48" />
+        <path d="M74 53h35" stroke="#D8FF5C" strokeOpacity="0.55" strokeLinecap="round" />
       </g>
       <path
-        d="M81 71v12"
+        d="M88 76v12"
         stroke="#D8FF5C"
-        strokeOpacity="0.6"
+        strokeOpacity="0.75"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeDasharray="2 4"
       />
       <path
-        d="M76 79l5 5 5-5"
+        d="M82 85l6 6 6-6"
         stroke="#D8FF5C"
-        strokeOpacity="0.7"
+        strokeOpacity="0.85"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M40 88v10c0 5.5 4.5 10 10 10h50c5.5 0 10-4.5 10-10V88"
-        stroke="#F4F1E8"
-        strokeOpacity="0.34"
+        d="M44 95v9c0 5.5 4.5 10 10 10h54c5.5 0 10-4.5 10-10v-9"
+        stroke="currentColor"
+        strokeOpacity="0.6"
         strokeWidth="2"
         strokeLinecap="round"
       />
-      <path d="M44 96h62" stroke="#F4F1E8" strokeOpacity="0.1" strokeWidth="1" />
-      <circle cx="127" cy="76" r="2" fill="#D8FF5C" fillOpacity="0.4" />
-      <circle cx="22" cy="73" r="1.5" fill="#F4F1E8" fillOpacity="0.2" />
+      <path d="M48 103h66" stroke="currentColor" strokeOpacity="0.14" strokeWidth="1" />
+      <circle cx="139" cy="80" r="2" fill="#D8FF5C" fillOpacity="0.6" />
+      <circle cx="23" cy="78" r="1.5" fill="currentColor" fillOpacity="0.3" />
     </svg>
   )
 }

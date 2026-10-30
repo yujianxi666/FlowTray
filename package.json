@@ -6,6 +6,9 @@
   "author": "FlowTray",
   "license": "MIT",
   "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "start": "electron-vite preview",
@@ -13,8 +16,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "node tests/e2e/smoke.mjs",
-    "dist": "pnpm build && electron-builder --win nsis",
+    "test:e2e": "node tests/e2e/acceptance.mjs",
+    "test:hotkey": "node tests/e2e/hotkey.mjs",
+    "test:all": "pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e && pnpm test:hotkey",
+    "dist": "pnpm build && electron-builder --win nsis portable",
     "dist:dir": "pnpm build && electron-builder --win --dir"
   },
   "pnpm": {

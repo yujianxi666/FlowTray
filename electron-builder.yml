@@ -1,0 +1,37 @@
+appId: com.flowtray.desktop
+productName: FlowTray
+copyright: Copyright © 2026 FlowTray
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: resources
+    to: resources
+asar: true
+npmRebuild: false
+win:
+  icon: build/icon.ico
+  executableName: FlowTray
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  artifactName: FlowTray-${version}-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: FlowTray 流转台
+  uninstallDisplayName: FlowTray 流转台
+  deleteAppDataOnUninstall: false
+portable:
+  artifactName: FlowTray-${version}-portable.${ext}

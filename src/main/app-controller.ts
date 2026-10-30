@@ -104,7 +104,7 @@ export class AppController {
     })
     this.undo = new UndoManager(() => this.scheduleBroadcast())
     this.clipboard = new ClipboardService(this.items, this.settings)
-    this.drag = new DragService(this.items, this.shelf)
+    this.drag = new DragService(this.items, this.shelf, this.settings)
     this.lifecycle = new Lifecycle(this.items, this.drag, {
       onExpired: (ids) => this.handleExpired(ids),
       onRemind: (count) => this.handleRemind(count),
@@ -926,6 +926,11 @@ export class AppController {
 
   openSettingsE2E(section?: SettingsSection): void {
     this.openSettings(section)
+  }
+
+  async runLifecycleForE2E(): Promise<void> {
+    await this.lifecycle.tick()
+    this.scheduleBroadcast()
   }
 
   async restart(): Promise<void> {

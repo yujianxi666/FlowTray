@@ -141,8 +141,7 @@ export function SettingsPanel() {
     removeSensitive: (value: string) =>
       update({ sensitiveApps: settings.sensitiveApps.filter((entry) => entry !== value) }),
     resetSensitive: () => update({ sensitiveApps: [...SENSITIVE_APPS_DEFAULT] }),
-    setConfirm,
-    appendSensitive: (value: string) => setSensitiveInput(value)
+    setConfirm
   }
 
   return (
@@ -624,7 +623,6 @@ interface PrivacyProps extends BaseProps {
   sensitiveInput: string
   setSensitiveInput: (value: string) => void
   addSensitive: () => Promise<void>
-  appendSensitive: (value: string) => void
   removeSensitive: (value: string) => Promise<boolean>
   resetSensitive: () => Promise<boolean>
   setConfirm: (kind: 'clear-data' | 'reset-data') => void
@@ -637,12 +635,10 @@ function PrivacySection({
   sensitiveInput,
   setSensitiveInput,
   addSensitive,
-  appendSensitive,
   removeSensitive,
   resetSensitive,
   setConfirm
 }: PrivacyProps) {
-  void appendSensitive
   return (
     <>
       <SectionHeader

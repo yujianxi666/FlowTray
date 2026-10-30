@@ -32,6 +32,12 @@ function hashHex(data: Buffer | string): string {
   return createHash('sha256').update(data).digest('hex')
 }
 
+async function blobOrString(value: unknown): Promise<string> {
+  if (typeof value === 'string') return value
+  if (value instanceof Blob) return await value.text()
+  return ''
+}
+
 async function blobSampleHash(blob: Blob): Promise<string> {
   const head = Buffer.from(await blob.slice(0, 8192).arrayBuffer())
   const tail =
@@ -169,12 +175,12 @@ export class ClipboardService {
           raw.types.push(type)
           try {
             const value = await item.getType(type)
-            if (type === 'text/plain' && typeof value === 'string') {
-              raw.text = raw.text || value
-            } else if (type === 'text/html' && typeof value === 'string') {
-              raw.html = raw.html || value
-            } else if (type === 'text/uri-list' && typeof value === 'string') {
-              raw.uriList = raw.uriList || value
+            if (type === 'text/plain' && !raw.text) {
+              raw.text = await blobOrString(value)
+            } else if (type === 'text/html' && !raw.html) {
+              raw.html = await blobOrString(value)
+            } else if (type === 'text/uri-list' && !raw.uriList) {
+              raw.uriList = await blobOrString(value)
             } else if (type === 'electron application/bookmark' && value && typeof value === 'object') {
               const bookmark = value as { title?: string; url?: string }
               if (bookmark.url) {

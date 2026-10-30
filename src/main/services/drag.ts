@@ -5,6 +5,7 @@ import { pathExists, ensureDir, sanitizeFileName, uniqueDestination, removePath 
 import { dragCacheDir, appIconPath } from '@main/lib/paths'
 import { logger } from '@main/lib/logger'
 import type { ItemService, ItemRow } from '@main/services/items'
+import type { SettingsStore } from '@main/store/settings'
 import type { ShelfWindow } from '@main/window/shelf'
 import type { DragEffect, DragOutPayload } from '@shared/types'
 
@@ -20,14 +21,15 @@ export interface DragPreparation {
 export class DragService {
   constructor(
     private readonly items: ItemService,
-    private readonly shelf: ShelfWindow
+    private readonly shelf: ShelfWindow,
+    private readonly settings: SettingsStore
   ) {}
 
   async prepare(rows: ItemRow[], effect: DragEffect): Promise<DragPreparation> {
     const files: string[] = []
     const warnings: string[] = []
     const skipped: string[] = []
-    const copy = effect === 'copy'
+    const copy = effect === 'copy' && this.settings.get().safeDragCopy
     const stagingRoot = join(dragCacheDir(), `batch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`)
     let staged = false
 
@@ -130,7 +132,9 @@ export class DragService {
           ? preparation.warnings[0]
           : payload.effect === 'cut'
             ? '剪切拖出：松手后文件将从原位置移走。'
-            : '正在拖出安全副本，松手放到目标应用即可。'
+            : this.settings.get().safeDragCopy
+              ? '正在拖出安全副本，松手放到目标应用即可。'
+              : '正在拖出原文件，请在目标处确认复制结果。'
     })
 
     const window = this.shelf.window

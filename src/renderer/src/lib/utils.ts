@@ -80,6 +80,7 @@ export function matchesQuery(item: ShelfItemView, rawQuery: string): boolean {
   const haystack = [
     item.name,
     item.preview ?? '',
+    item.textContent ?? '',
     item.url ?? '',
     item.sourceApp ?? '',
     item.path ?? '',

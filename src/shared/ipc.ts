@@ -49,5 +49,6 @@ export const IPC = {
   e2eOpenOnboarding: 'e2e:open-onboarding',
   e2eOpenSettings: 'e2e:open-settings',
   e2eClearAll: 'e2e:clear-all',
+  e2eSweep: 'e2e:sweep',
   e2eFlush: 'e2e:flush'
 } as const

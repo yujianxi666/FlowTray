@@ -11,6 +11,7 @@ import {
   PinOff,
   Trash2,
   TriangleAlert,
+  Type,
   X
 } from 'lucide-react'
 import type { ShelfItemDetail } from '@shared/types'
@@ -162,7 +163,13 @@ export function InfoSheet() {
                 <img src={detail.thumbUrl} alt="" draggable={false} />
               ) : (
                 <span className="info-thumb-fallback">
-                  {detail.type === 'text' ? 'TXT' : detail.type === 'url' ? <Link2 size={26} /> : detail.ext?.toUpperCase() ?? 'FILE'}
+                  {detail.type === 'text' ? (
+                    <Type size={24} strokeWidth={1.5} />
+                  ) : detail.type === 'url' ? (
+                    <Link2 size={26} />
+                  ) : (
+                    detail.ext?.toUpperCase() ?? 'FILE'
+                  )}
                 </span>
               )}
             </div>
@@ -171,7 +178,12 @@ export function InfoSheet() {
                 {detail.name}
               </div>
               <div className="info-sub">
-                {typeLabel(detail)} · {formatBytes(detail.size)}
+                {typeLabel(detail)} ·{' '}
+                {detail.type === 'text'
+                  ? `${detail.textLength ?? 0} 字`
+                  : detail.type === 'url'
+                    ? '链接'
+                    : formatBytes(detail.size)}
                 {detail.pinned ? ' · 已固定' : ''}
               </div>
             </div>
@@ -246,11 +258,13 @@ export function InfoSheet() {
               <MetaRow
                 label="存储方式"
                 value={
-                  detail.storageMode === 'copy'
-                    ? detail.movedIn
-                      ? '已移入 FlowTray（可放回）'
-                      : 'FlowTray 副本'
-                    : '引用原文件（不复制）'
+                  detail.type === 'text' || detail.type === 'url'
+                    ? '本地数据库'
+                    : detail.storageMode === 'copy'
+                      ? detail.movedIn
+                        ? '已移入 FlowTray（可放回）'
+                        : 'FlowTray 副本'
+                      : '引用原文件（不复制）'
                 }
               />
               <MetaRow

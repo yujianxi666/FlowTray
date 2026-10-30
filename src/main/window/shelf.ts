@@ -214,9 +214,11 @@ export class ShelfWindow {
     if (win.isMinimized()) win.restore()
     if (focus && reason !== 'edge') {
       win.show()
+      win.moveTop()
       win.focus()
     } else {
       win.showInactive()
+      win.moveTop()
     }
     win.setAlwaysOnTop(this.settings.get().alwaysOnTop, 'floating')
     const command: UiCommand = { type: 'window-shown', reason }

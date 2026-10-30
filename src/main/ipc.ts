@@ -297,6 +297,11 @@ export function registerIpc(controller: AppController): void {
     return controller.clearItems(true)
   })
 
+  handle(IPC.e2eSweep, async () => {
+    if (!e2eGuard()) return
+    await controller.runLifecycleForE2E()
+  })
+
   handle(IPC.e2eFlush, async () => {
     if (!e2eGuard()) return
     await new Promise((resolve) => setTimeout(resolve, 80))

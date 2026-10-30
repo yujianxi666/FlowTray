@@ -1,4 +1,4 @@
-import { app, nativeImage } from 'electron'
+import { nativeImage } from 'electron'
 import { promises as fs } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
 import {
@@ -454,7 +454,7 @@ export class ItemService {
             ? error.detail
             : errorFromUnknown(error, basename(path))
         result.errors.push(detail)
-        logger.warn('items.add_path_failed', { code: detail.code, name: detail.name })
+        logger.warn('items.add_path_failed', { code: detail.code })
       }
     }
     result.ok = result.added > 0 || result.duplicates > 0
@@ -506,25 +506,19 @@ export class ItemService {
     absolutePath: string,
     type: ItemType
   ): Promise<string | null> {
+    // Only real image previews are stored. File-type badges are rendered by the UI,
+    // which keeps the shelf visually consistent and avoids icon-cache surprises.
+    if (type !== 'image') return null
     try {
       await ensureDir(this.thumbsRoot())
       let image = null
-      if (type === 'image') {
-        try {
-          image = await nativeImage.createThumbnailFromPath(absolutePath, {
-            width: 360,
-            height: 360
-          })
-        } catch {
-          image = null
-        }
-      }
-      if (!image || image.isEmpty()) {
-        try {
-          image = await app.getFileIcon(absolutePath, { size: 'large' })
-        } catch {
-          image = null
-        }
+      try {
+        image = await nativeImage.createThumbnailFromPath(absolutePath, {
+          width: 360,
+          height: 360
+        })
+      } catch {
+        image = null
       }
       if (!image || image.isEmpty()) return null
       const png = image.toPNG()

@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { appendFileSync, existsSync, mkdirSync, renameSync, statSync, unlinkSync } from 'node:fs'
-import { homedir } from 'node:os'
 import { join } from 'node:path'
+import { redactValue } from './redact'
 
 type Level = 'debug' | 'info' | 'warn' | 'error'
 
@@ -83,41 +83,3 @@ export class Logger {
 }
 
 export const logger = new Logger()
-
-const HOME = homedir()
-const WINDOWS_PATH = /[A-Za-z]:\\(?:[^\\/:*?"<>|\r\n]+\\)*[^\\/:*?"<>|\r\n]*/g
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
-
-export function redactString(value: string): string {
-  let result = value
-  if (HOME) {
-    result = result.split(HOME).join('%USERPROFILE%')
-  }
-  result = result.replace(WINDOWS_PATH, '<path>')
-  result = result.replace(EMAIL, '<email>')
-  return result
-}
-
-function redactValue(value: unknown, depth = 0): unknown {
-  if (depth > 4) return '<deep>'
-  if (typeof value === 'string') return redactString(value)
-  if (typeof value === 'number' || typeof value === 'boolean' || value == null) return value
-  if (value instanceof Error) {
-    return {
-      name: value.name,
-      message: redactString(value.message),
-      stack: value.stack ? redactString(value.stack).split('\n').slice(0, 6).join('\n') : undefined
-    }
-  }
-  if (Array.isArray(value)) {
-    return value.slice(0, 40).map((entry) => redactValue(entry, depth + 1))
-  }
-  if (typeof value === 'object') {
-    const result: Record<string, unknown> = {}
-    for (const [key, entry] of Object.entries(value as Record<string, unknown>).slice(0, 40)) {
-      result[key] = redactValue(entry, depth + 1)
-    }
-    return result
-  }
-  return String(value)
-}

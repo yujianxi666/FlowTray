@@ -78,8 +78,8 @@
   gap: 4px;
   margin-top: 2px;
   color: var(--ink-faint);
-  font-size: 9px;
-  letter-spacing: 0.13em;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -118,7 +118,7 @@
   border-radius: 8px;
   background: var(--amber-soft);
   color: var(--amber);
-  font-size: 10px;
+  font-size: 10.5px;
   line-height: 1.4;
 }
 
@@ -181,7 +181,7 @@
   flex: 1;
   min-width: 0;
   height: 100%;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--ink);
 }
 
@@ -265,7 +265,7 @@
   border: 1px solid transparent;
   border-radius: 7px;
   color: var(--ink-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 520;
   white-space: nowrap;
   transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
@@ -343,7 +343,7 @@
   height: 25px;
   padding: 4px 2px 0;
   color: var(--ink-faint);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -598,9 +598,9 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
-  color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 540;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 550;
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -629,8 +629,8 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
-  color: var(--ink-faint);
-  font-size: 9.5px;
+  color: var(--ink-muted);
+  font-size: 10px;
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -687,7 +687,7 @@
   align-items: center;
   gap: 2.5px;
   color: var(--ink-faint);
-  font-size: 9px;
+  font-size: 9.5px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -854,11 +854,11 @@
 }
 
 .grid-name {
-  color: var(--ink-soft);
-  font-size: 11.5px;
-  font-weight: 540;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 550;
   line-height: 1.4;
-  min-height: 32px;
+  min-height: 33px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -877,7 +877,7 @@
   gap: 4px;
   margin-top: 3px;
   color: var(--ink-faint);
-  font-size: 9px;
+  font-size: 9.5px;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -939,15 +939,29 @@
 
 .empty-art {
   margin-bottom: 12px;
-  color: var(--accent);
+  color: var(--ink-soft);
   filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.25));
+}
+
+.empty-float {
+  animation: empty-float 4.5s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 .empty-title {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 620;
   letter-spacing: -0.01em;
 }
@@ -956,7 +970,7 @@
   margin: 6px 0 0;
   max-width: 260px;
   color: var(--ink-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -1101,7 +1115,7 @@
   padding: 0 7px;
   border-radius: 6px;
   color: var(--ink-faint);
-  font-size: 9.5px;
+  font-size: 10px;
   transition: background 130ms ease, color 130ms ease;
 }
 
@@ -1208,9 +1222,9 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-width: 40px;
+  min-width: 43px;
   height: 42px;
-  padding: 0 5px;
+  padding: 0 4px;
   border-radius: 7px;
   color: var(--ink-muted);
   font-size: 8.5px;
@@ -1303,14 +1317,14 @@
 .drop-title {
   color: var(--ink);
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 650;
   letter-spacing: -0.01em;
 }
 
 .drop-subtitle {
   color: var(--ink-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.6;
   max-width: 250px;
 }
@@ -1401,7 +1415,7 @@
   background: var(--bg-elevated);
   box-shadow: var(--shadow-float);
   color: var(--ink-soft);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
   pointer-events: auto;
   animation: toast-in 220ms var(--ease-spring) both;
