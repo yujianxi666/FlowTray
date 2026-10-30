@@ -12,7 +12,7 @@ describe('settings normalization', () => {
     expect(settings.theme).toBe('light')
     expect(settings.defaultTtl).toBe('24h')
     expect(settings.shelfWidth).toBe(396)
-    expect(settings.hotkeyToggle).toBe('Control+Alt+Space')
+    expect(settings.hotkeyToggle).toBe('Control+Alt+Shift+Space')
     expect(settings.launchAsAdmin).toBe(false)
   })
 

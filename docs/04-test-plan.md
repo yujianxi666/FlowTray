@@ -59,15 +59,15 @@
 | 9 | 固定 | `items.update({pinned:true})` → 快照 pinned=true |
 | 10 | 清空 + 撤销 | 8→1（固定项保留）→ 撤销恢复 8 |
 | 11 | 到期清理 + 撤销 | 过期项扫描消失 → 撤销恢复 |
-| 12 | 窗口显隐 | hide → isVisible=false；toggle → true |
+| 12 | 窗口显隐 | hide → 完整窗宽消失（peek 可留下）；toggle → 恢复 |
 | 13 | 设置 | 7 个分类存在；切换浅色实时生效 |
 | 14 | 重启持久化 | 重启后引导不重复、卡片数量、主题保持 |
 | 15 | 50 卡性能 | 56+ 卡片渲染；耗时记录 |
 
 实测性能（最近一次完整跑）：
 
-- 写入 50 条 + 渲染：**233ms**
-- 滚动到底部布局：**112ms**
+- 写入 50 条 + 渲染：**245ms**
+- 滚动到底部布局：**111ms**
 - 单条 50 卡追加平均 < 5ms
 
 （首次跑为 412ms，含冷启动缓存；数据规模与 UI 相同。）
@@ -80,14 +80,14 @@
 
 | 项 | 结果 |
 | --- | --- |
-| 注册 toggle | `Control+Alt+Space`，ok=true |
+| 注册 toggle | `Control+Alt+Shift+Space`，ok=true |
 | 注册 capture | `Control+Shift+D`，ok=true |
-| 隐藏耗时 | **49ms** |
-| 呼出耗时 | **2ms** |
+| 隐藏耗时 | **115ms** |
+| 呼出耗时 | **3ms** |
 | 贴右边缘 | bounds.x + width = workArea.right |
-| 隐藏后光标移入边缘中段 | 519ms 后显示 |
+| 隐藏后光标移入边缘中段 | 525ms 后显示 |
 
-说明：边缘检测为 150ms 轮询 + 450ms 停留，519ms 包含轮询相位；用户感知 < 0.7s。
+说明：边缘检测为 150ms 轮询 + 450ms 停留，525ms 包含轮询相位；用户感知 < 0.7s。
 
 ### 2.4 原生拖出到资源管理器
 
@@ -105,9 +105,9 @@
 
 用 Electron `desktopCapturer` 以 2560×1440 截取真实桌面（PowerShell GDI 在 125% DPI 下只截到 2048×1152，不可作为全屏证据）：
 
-- 悬浮窗在屏幕右边缘完整显示，右侧贴边、左侧 16px 透明 gutter。
+- 悬浮窗在屏幕右边缘完整显示，右侧贴边；无 16px gutter、无黑色外框。
 - 在 Chrome/DSH 全屏窗口上方可见（`alwaysOnTop` + `moveTop`）。
-- 截图见 `docs/screenshots/desktop-edge.png`。
+- 截图见 `docs/screenshots/desktop-edge.png` 与 `edge-expanded.png`。
 
 ### 2.6 打包冒烟
 
@@ -126,12 +126,26 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 | unpacked 打包 | 成功，`release/win-unpacked/FlowTray.exe` |
 | packaged 冒烟 | 通过：标题、数据库、storage 创建、剪贴板暂存 1 张卡 |
 | Portable | 成功启动；窗口 "FlowTray 流转台"；`flowtray.db`、`storage/` 在指定 userData 下创建 |
-| NSIS 安装包 | 生成 `release/FlowTray-0.1.0-x64.exe`（约 124.5MB） |
-| Portable 包 | 生成 `release/FlowTray-0.1.0-portable.exe`（约 112.2MB） |
+| NSIS 安装包 | 生成 `release/FlowTray-0.1.0-x64.exe`（约 116.0MB） |
+| Portable 包 | 生成 `release/FlowTray-0.1.0-portable.exe`（约 104.5MB） |
+| 语言包 | 只保留 `zh-CN.pak` / `en-US.pak`（体积优化） |
 | 代码签名 | 未配置证书，electron-builder 明确跳过；SmartScreen 会提示 |
 | 安装/卸载流程 | **待人工**：安装到用户目录、快捷方式、卸载保留数据 |
 
 > 安装包已生成，但没有在本机执行安装/卸载，避免改动系统快捷方式与卸载注册表；发布前按第 4 节人工清单执行。
+
+### 2.7 快捷键、边缘提示条、自动隐藏
+
+| 命令 | 场景 | 结果 |
+| --- | --- | --- |
+| `node tests/e2e/shortcuts.mjs` | 默认快捷键注册 | `Control+Alt+Shift+Space` ok=true |
+| 同上 | 录制 `Control+Alt+Shift+K` | 设置持久化，host.hotkeys.toggle.ok=true |
+| 同上 | 只按 Ctrl/Alt/Shift | UI 提示「还差一个主键」，不静默失败 |
+| 同上 | 恢复默认 | 自动重新注册成功 |
+| `node tests/e2e/edge-peek.mjs` | 光标在右侧 1/4 屏宽内 | 窗口收窄为 32×181 提示条，不抢焦点 |
+| 同上 | 贴边停留 | 展开为 396×680 完整悬浮窗 |
+| 同上 | 触发 blur 事件 | 220ms 事件路径隐藏；600ms 看门狗兜底 |
+| `node tests/e2e/hotkey-migration.mjs` | 旧 `Control+Shift+Space` 数据 | 启动迁移为新的 4 键默认并注册成功 |
 
 ## 3. 验收标准对照
 
@@ -141,8 +155,8 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 | 拖到资源管理器 + 至少一个聊天/浏览器 | 部分通过：资源管理器实测；聊天/浏览器待人工 | 原生拖出日志 + 人工清单 |
 | 复制一段文本后可在其他应用粘贴 | 通过 | E2E 系统剪贴板读取 |
 | 重启后未过期/固定内容恢复 | 通过 | E2E 重启持久化 |
-| 全局快捷键 1 秒内呼出/隐藏 | 通过 | 49ms / 2ms |
-| 50 张卡片不卡顿 | 通过 | 233ms 加载 / 112ms 滚动 |
+| 全局快捷键 1 秒内呼出/隐藏 | 通过 | 115ms / 3ms |
+| 50 张卡片不卡顿 | 通过 | 245ms 加载 / 111ms 滚动 |
 | 清空后可撤销 | 通过 | 8→1→8 |
 | 原文件缺失有明确状态 | 通过（数据层 + UI 状态） | `missing` + 重新定位；人工可复现 |
 | 无任何上传/账号 | 通过 | 无网络请求；全部本地 |
@@ -205,8 +219,10 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 - [ ] 双屏（不同缩放）呼出在光标所在屏；拔掉副屏后不跑出屏幕。
 - [ ] 贴左/贴右切换；宽度/高度拖拽；重启保持。
 - [ ] 始终置顶关闭后能被其他窗口覆盖；开启后覆盖普通窗口。
+- [ ] 光标进入左/右 1/4 屏宽出现 32×180 细提示条；贴边停留后展开，离开 1/4 区域后消失。
+- [ ] 开启「失焦自动收起」后点击其他应用，悬浮窗在 1 秒内隐藏（含 blur 事件与看门狗路径）。
 - [ ] 失焦自动收起开启/关闭。
-- [ ] Win10 22H2 无 acrylic 时 CSS 半透明可读。
+- [ ] Win10 22H2 无系统 acrylic 时 CSS 半透明可读、无黑框。
 - [ ] 开机自启（普通/管理员）重启后生效。
 - [ ] 管理员自启在非管理员账户下的提示与失败回滚。
 - [ ] 托盘图标、菜单、计数、退出。
@@ -228,6 +244,9 @@ pnpm test
 pnpm build
 pnpm test:e2e
 pnpm test:hotkey
+node tests/e2e/shortcuts.mjs
+node tests/e2e/edge-peek.mjs
+node tests/e2e/hotkey-migration.mjs
 node tests/e2e/dragout.mjs   # 可选，需桌面交互
 pnpm dist:dir                # 打包冒烟
 ```
@@ -237,7 +256,12 @@ pnpm dist:dir                # 打包冒烟
 | 问题 | 修复 |
 | --- | --- |
 | Electron 45 剪贴板 `getType` 返回 Blob，旧 string 判断导致文本/文件丢失 | 统一 `blobOrString` 异步读取；E2E 验证 |
-| 默认 `Ctrl+Shift+Space` 在本机被占用 | 探测后改为 `Ctrl+Alt+Space`，并在 UI 显示冲突回滚 |
+| 旧默认 `Control+Shift+Space` 被占用；设置里改快捷键有时无反馈 | 默认改为 `Control+Alt+Shift+Space`；旧值启动迁移；录制失败显示具体错误 |
+| 纯修饰键 `Ctrl+Alt+Shift` 无法注册，用户会以为「没效果」 | 录制时明确提示还差一个主键；默认补 `Space` |
+| 透明窗 + 16px gutter + OS acrylic 在窗口外圈露出半透明/黑色边框 | 窗口与卡片等大；去掉 gutter 和 `setBackgroundMaterial('acrylic')`，只保留 CSS 半透明 |
+| 弹出/收起是普通淡入，缺少惯性 | 改为带过冲的曲线平移（34px → -6px → 0），收起加速滑出 |
+| 靠近屏幕边缘没有提前反馈 | 增加 32×180 的单窗口 edge peek：1/4 屏宽内出现，贴边停留后展开 |
+| 自动隐藏偶发失效 | blur 事件路径不再二次检查可能滞后的 `isFocused`；新增 600ms 看门狗 |
 | 非图片使用 Windows 原生图标，风格割裂 | 改为自绘类型牌；图片才生成缩略图 |
 | 清空按钮被选择栏遮挡，自动化点击失败 | 先取消选择再清空；UI 层级确认 |
 | 125% DPI 下 PowerShell GDI 截图裁掉右侧窗口，误判不可见 | 用 Electron `desktopCapturer` 以物理分辨率验证 |
@@ -246,14 +270,16 @@ pnpm dist:dir                # 打包冒烟
 | 拖出复制未尊重 `safeDragCopy` 设置 | DragService 注入 settings；关闭时直接拖源路径并提示 |
 | 应用在边缘被其他置顶窗口遮挡 | 显示时 `moveTop` + 置顶层级；桌面截图验证 |
 | 搜索不查完整文本（只查 preview） | 加入 `textContent`，单元测试覆盖 |
+| 安装包偏大（124.5MB） | 保留中英语言包、最高压缩、设置页懒加载，降到 116MB / Portable 104.5MB |
 
 ## 7. 未解决/已知风险
 
 1. **第三方应用兼容矩阵**未完成；微信/QQ/Outlook 的登录态无法自动测。
 2. **管理员边界**无法通过代码消除；只能提示与重启。
 3. **文件夹 junction 拖出**的语义在部分应用可能显示为快捷方式；需按目标验证。
-4. **Win10** 未实机跑；acrylic 回退逻辑存在但需视觉验收。
+4. **Win10** 未实机跑；已去掉 acrylic，CSS 半透明/无外框仍需视觉验收。
 5. **多显示器/异 DPI** 未自动测；当前窗口定位依赖光标所在屏。
 6. **自动更新/签名**未实现，不能作为正式公开发布。
 7. **存储迁移断电**只做到"尽量回滚"，无 WAL 式迁移日志。
+8. **纯修饰键全局热键**未实现；Windows `RegisterHotKey`/Electron 都要求非修饰键，若坚持需要低级键盘钩子，不建议。
 8. **剪贴板监听**在 Electron 45 上的 Blob 读取虽已修，仍需在微信/Office 的真实格式上回归。

@@ -1,23 +1,31 @@
 import { BrowserWindow, screen, shell } from 'electron'
 import { join } from 'node:path'
-import { GUTTER, isWindows11 } from '@main/lib/paths'
+import { GUTTER } from '@main/lib/paths'
 import { logger } from '@main/lib/logger'
 import type { SettingsStore } from '@main/store/settings'
 import type { UiCommand } from '@shared/types'
 
 export type ShowReason = 'hotkey' | 'tray' | 'edge' | 'app' | 'ipc'
 
-const VERTICAL_PADDING = 16
-const HIDE_ANIMATION_MS = 130
+const VERTICAL_PADDING = 0
+const HIDE_ANIMATION_MS = 200
+const PEEK_WIDTH = 32
+const PEEK_HEIGHT = 180
+type WindowMode = 'hidden' | 'full' | 'peek'
 
 export class ShelfWindow {
   private win: BrowserWindow | null = null
   private hideTimer: NodeJS.Timeout | null = null
   private blurTimer: NodeJS.Timeout | null = null
+  private focusWatch: NodeJS.Timeout | null = null
   private queuedCommands: UiCommand[] = []
   private interactionLocked = false
   private quitting = false
   private lastShowAt = 0
+  private shownFocused = false
+  private lastFocusAt = 0
+  private lastBlurAt = 0
+  private mode: WindowMode = 'hidden'
 
   constructor(private readonly settings: SettingsStore) {}
 
@@ -58,6 +66,8 @@ export class ShelfWindow {
     })
     this.win = win
     this.applyBackgroundMaterial()
+    win.setIgnoreMouseEvents(false)
+    win.setFocusable(true)
     this.positionAndSize('app')
     win.setMenuBarVisibility(false)
     win.setAlwaysOnTop(settings.alwaysOnTop, 'floating')
@@ -69,17 +79,24 @@ export class ShelfWindow {
       }
     })
     win.on('blur', () => {
+      this.lastBlurAt = Date.now()
       this.sendCommand({ type: 'blur' })
-      if (this.settings.get().hideOnBlur) {
-        if (this.blurTimer) clearTimeout(this.blurTimer)
-        this.blurTimer = setTimeout(() => {
-          if (!this.win || this.win.isDestroyed()) return
-          if (this.win.isFocused() || this.interactionLocked) return
-          this.hide()
-        }, 160)
-      }
+      if (!this.settings.get().hideOnBlur || this.mode !== 'full') return
+      if (this.blurTimer) clearTimeout(this.blurTimer)
+      this.blurTimer = setTimeout(() => {
+        if (!this.win || this.win.isDestroyed()) return
+        if (!this.win.isVisible() || this.interactionLocked) return
+        if (!this.settings.get().hideOnBlur) return
+        // Do not re-check isFocused here: on Windows that flag can remain true
+        // for a frame after focus has already moved to another process. A real
+        // focus event clears this timer, so the event itself is authoritative.
+        this.hide()
+      }, 220)
     })
     win.on('focus', () => {
+      this.shownFocused = true
+      this.lastFocusAt = Date.now()
+      this.lastBlurAt = 0
       if (this.blurTimer) {
         clearTimeout(this.blurTimer)
         this.blurTimer = null
@@ -87,6 +104,10 @@ export class ShelfWindow {
     })
     win.on('show', () => {
       this.lastShowAt = Date.now()
+    })
+    win.on('hide', () => {
+      this.shownFocused = false
+      this.mode = 'hidden'
     })
 
     win.webContents.setWindowOpenHandler(({ url }) => {
@@ -131,9 +152,36 @@ export class ShelfWindow {
 
     const onClosed = (): void => {
       this.win = null
+      if (this.focusWatch) {
+        clearInterval(this.focusWatch)
+        this.focusWatch = null
+      }
     }
     win.on('closed', onClosed)
+    this.startFocusWatch()
     return win
+  }
+
+  private startFocusWatch(): void {
+    if (this.focusWatch) return
+    this.focusWatch = setInterval(() => {
+      const win = this.win
+      if (!win || win.isDestroyed() || !win.isVisible()) return
+      if (this.mode !== 'full') return
+      if (!this.settings.get().hideOnBlur) return
+      if (!this.shownFocused || this.interactionLocked) return
+      if (Date.now() - this.lastShowAt < 700) return
+      if (this.lastBlurAt > this.lastFocusAt) {
+        if (Date.now() - this.lastBlurAt < 500) return
+        this.hide()
+        return
+      }
+      // Fallback when the OS did not deliver a blur event at all: trust the
+      // focused state once the window has been unfocused for a full second.
+      if (win.isFocused()) return
+      if (Date.now() - this.lastFocusAt < 1200) return
+      this.hide()
+    }, 600)
   }
 
   private windowWidth(): number {
@@ -179,15 +227,9 @@ export class ShelfWindow {
 
   private applyBackgroundMaterial(): void {
     if (!this.win || this.win.isDestroyed()) return
-    const settings = this.settings.get()
-    if (process.platform === 'win32' && isWindows11() && settings.glass) {
-      try {
-        this.win.setBackgroundMaterial('acrylic')
-        return
-      } catch {
-        // fall through
-      }
-    }
+    // The transparent-window + OS acrylic combination paints the entire
+    // rectangular window (including the old shadow gutter) as a dark frame on
+    // some Windows 11 builds. The shelf now uses CSS translucency only.
     try {
       this.win.setBackgroundMaterial('none')
     } catch {
@@ -200,7 +242,12 @@ export class ShelfWindow {
     const settings = this.settings.get()
     this.win.setAlwaysOnTop(settings.alwaysOnTop, 'floating')
     this.applyBackgroundMaterial()
-    this.positionAndSize('ipc')
+    if (this.mode === 'peek') {
+      const point = screen.getCursorScreenPoint()
+      this.showPeek(point, screen.getDisplayNearestPoint(point))
+      return
+    }
+    if (this.mode === 'full') this.positionAndSize('ipc')
   }
 
   show(reason: ShowReason, focus = true): void {
@@ -210,9 +257,16 @@ export class ShelfWindow {
       clearTimeout(this.hideTimer)
       this.hideTimer = null
     }
+    if (this.mode === 'peek') {
+      win.setIgnoreMouseEvents(false)
+      win.setFocusable(true)
+    }
+    this.mode = 'full'
     this.positionAndSize(reason)
     if (win.isMinimized()) win.restore()
+    this.shownFocused = focus && reason !== 'edge'
     if (focus && reason !== 'edge') {
+      this.lastFocusAt = Date.now()
       win.show()
       win.moveTop()
       win.focus()
@@ -229,25 +283,84 @@ export class ShelfWindow {
     }
   }
 
+  showPeek(point: Electron.Point, display: Electron.Display): void {
+    const win = this.win
+    if (!win || win.isDestroyed() || this.quitting || this.mode === 'full') return
+    const area = display.workArea
+    const height = Math.min(PEEK_HEIGHT, Math.max(120, area.height - 24))
+    const width = PEEK_WIDTH
+    const y = Math.max(
+      area.y + 8,
+      Math.min(area.y + area.height - height - 8, Math.round(point.y - height / 2))
+    )
+    const x =
+      this.settings.get().shelfSide === 'right'
+        ? area.x + area.width - width
+        : area.x
+    this.mode = 'peek'
+    win.setFocusable(false)
+    win.setIgnoreMouseEvents(true)
+    win.setBounds({ x: Math.round(x), y, width, height })
+    win.setAlwaysOnTop(true, 'floating')
+    if (!win.isVisible()) {
+      win.showInactive()
+    }
+    win.moveTop()
+  }
+
+  hidePeek(): void {
+    const win = this.win
+    if (this.mode !== 'peek') return
+    this.mode = 'hidden'
+    if (win && !win.isDestroyed()) {
+      win.hide()
+      win.setIgnoreMouseEvents(false)
+      win.setFocusable(true)
+    }
+  }
+
   hide(): void {
     const win = this.win
     if (!win || win.isDestroyed() || !win.isVisible()) return
+    if (this.mode === 'peek') {
+      this.hidePeek()
+      return
+    }
     this.sendCommand({ type: 'window-will-hide' })
     if (this.hideTimer) clearTimeout(this.hideTimer)
     this.hideTimer = setTimeout(() => {
       this.hideTimer = null
-      if (!win.isDestroyed()) win.hide()
+      if (!win.isDestroyed()) {
+        win.hide()
+        win.setIgnoreMouseEvents(false)
+        win.setFocusable(true)
+      }
     }, HIDE_ANIMATION_MS)
   }
 
   toggle(reason: ShowReason = 'hotkey'): void {
     const win = this.win
     if (!win || win.isDestroyed()) return
-    if (win.isVisible()) {
+    if (this.mode === 'full' && win.isVisible()) {
       this.hide()
     } else {
       this.show(reason, true)
     }
+  }
+
+  isFullVisible(): boolean {
+    return Boolean(
+      this.win &&
+        !this.win.isDestroyed() &&
+        this.win.isVisible() &&
+        this.mode === 'full'
+    )
+  }
+
+  isPeeking(): boolean {
+    return Boolean(
+      this.win && !this.win.isDestroyed() && this.win.isVisible() && this.mode === 'peek'
+    )
   }
 
   sendCommand(command: UiCommand): void {
@@ -270,7 +383,7 @@ export class ShelfWindow {
   }
 
   setSizeLive(width: number, height: number): void {
-    if (!this.win || this.win.isDestroyed()) return
+    if (!this.win || this.win.isDestroyed() || this.mode !== 'full') return
     const display = this.targetDisplay()
     const work = display.workArea
     const cardWidth = this.clampCardWidth(width)
@@ -300,7 +413,7 @@ export class ShelfWindow {
 
   getCardSize(): { width: number; height: number } {
     const bounds = this.win?.getBounds()
-    if (!bounds) {
+    if (!bounds || bounds.width < 80) {
       return {
         width: this.settings.get().shelfWidth,
         height: this.settings.get().shelfHeight

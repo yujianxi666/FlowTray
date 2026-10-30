@@ -73,7 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   clipboardMaxItems: 200,
   sensitiveApps: [...SENSITIVE_APPS_DEFAULT],
   sensitiveTitles: [...SENSITIVE_TITLES_DEFAULT],
-  hotkeyToggle: 'Control+Alt+Space',
+  hotkeyToggle: 'Control+Alt+Shift+Space',
   hotkeyCapture: 'Control+Shift+D',
   onboardingDone: false,
   reduceMotion: false,

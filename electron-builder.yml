@@ -4,6 +4,10 @@ copyright: Copyright © 2026 FlowTray
 directories:
   buildResources: build
   output: release
+compression: maximum
+electronLanguages:
+  - zh-CN
+  - en-US
 files:
   - out/**
   - package.json

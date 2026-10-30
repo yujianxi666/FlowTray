@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { join } from 'node:path'
 
-export const GUTTER = 16
+export const GUTTER = 0
 
 export function resourcesDir(): string {
   return app.isPackaged

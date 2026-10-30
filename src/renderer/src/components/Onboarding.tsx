@@ -30,7 +30,7 @@ export function Onboarding() {
   const [saving, setSaving] = useState(false)
   const [sampleSaved, setSampleSaved] = useState(false)
   const settings = snapshot?.settings
-  const hotkey = settings?.hotkeyToggle ?? 'Control+Alt+Space'
+  const hotkey = settings?.hotkeyToggle ?? 'Control+Alt+Shift+Space'
 
   async function finish(skipped = false): Promise<void> {
     setSaving(true)

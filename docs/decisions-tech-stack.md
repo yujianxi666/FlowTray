@@ -31,7 +31,7 @@
 代价：
 
 - 安装包约 90–120MB、空闲内存约 150–250MB；对"轻量工具"是明显代价。
-- 透明窗 + acrylic + 125% DPI 在 Windows 上需要实际调；截图 API 有 DPI 坑。
+- 透明窗 + DWM/DPI 在 Windows 上需要实际调；系统 acrylic 与透明窗组合会露出矩形底材，本项目最终改为 CSS 半透明。
 - 代码签名、自动更新要自己做。
 - Electron 45 剪贴板 API 刚换代，旧示例大量失效，需要按当前文档写（本项目已踩坑并修复）。
 
@@ -83,7 +83,8 @@
 | 数据库 | `node:sqlite`（内置） | better-sqlite3 / SQLite WASM | 零原生依赖；WAL 足够 |
 | 缩略图 | 图片生成 512px PNG；非图片绘制类型牌 | Windows 原生图标 | 原生图标深浅色不一致、显得"系统拼贴" |
 | 拖出复制 | 硬链接/junction 暂存 | 直接拖源路径 | 防止目标应用"移动"原文件 |
-| 透明 | Win11 acrylic；其他 CSS 半透明 | 全不透明 | 质感与可读性折中 |
+| 透明 | CSS 半透明 + backdrop-filter，不使用系统 acrylic | 系统 acrylic | 透明窗 + 系统材质会在卡片外露出半透明/黑色矩形边框；改为 CSS 后无外圈 |
+| 打包 | 仅 zh-CN/en-US 语言包 + 最高压缩 | 全语言包 | 安装包 116MB / Portable 104.5MB |
 | 边缘唤出 | 光标轮询 | 全局鼠标钩子 | 无需管理员、无安全软件误报 |
 | 状态 | 主进程快照 + Zustand | 每组件 IPC | 单窗口，简单一致 |
 | 打包 | NSIS + Portable | MSIX | MSIX 签名/证书链复杂；NSIS 可控 |

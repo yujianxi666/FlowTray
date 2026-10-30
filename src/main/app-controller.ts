@@ -239,7 +239,7 @@ export class AppController {
   }
 
   toggleShelf(): void {
-    if (this.shelf.isVisible()) {
+    if (this.shelf.isFullVisible()) {
       this.shelf.hide()
     } else {
       this.showShelf('hotkey')
@@ -572,9 +572,16 @@ export class AppController {
       properties,
       buttonLabel: '重新定位'
     }
-    const result = window
-      ? await dialog.showOpenDialog(window, options)
-      : await dialog.showOpenDialog(options)
+    const result = await (async () => {
+      this.shelf.setInteractionLocked(true)
+      try {
+        return window
+          ? await dialog.showOpenDialog(window, options)
+          : await dialog.showOpenDialog(options)
+      } finally {
+        this.shelf.setInteractionLocked(false)
+      }
+    })()
     if (result.canceled || result.filePaths.length === 0) {
       return {
         ok: false,
@@ -649,6 +656,7 @@ export class AppController {
         hotkeyCapture: draft.hotkeyCapture
       })
       if (!result.ok) {
+        this.scheduleBroadcast()
         return {
           ok: false,
           errors: [{ field: 'hotkey', message: result.error ?? '快捷键注册失败。' }]
@@ -733,9 +741,16 @@ export class AppController {
       buttonLabel: '使用此文件夹',
       properties: ['openDirectory', 'createDirectory']
     }
-    const result = window
-      ? await dialog.showOpenDialog(window, options)
-      : await dialog.showOpenDialog(options)
+    const result = await (async () => {
+      this.shelf.setInteractionLocked(true)
+      try {
+        return window
+          ? await dialog.showOpenDialog(window, options)
+          : await dialog.showOpenDialog(options)
+      } finally {
+        this.shelf.setInteractionLocked(false)
+      }
+    })()
     if (result.canceled || result.filePaths.length === 0) {
       return { ok: false, message: '已取消。' }
     }

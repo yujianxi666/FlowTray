@@ -41,7 +41,12 @@ const versions = await app.evaluate(({ app }) => ({
   resources: process.resourcesPath
 }))
 console.log('APP', JSON.stringify(versions))
-await page.locator('[data-testid="shelf"]').screenshot({ path: join(root, 'docs', 'screenshots', 'packaged-smoke.png') })
+const snapshot = await page.evaluate(() => window.flowtray.app.getSnapshot())
+console.log('HOTKEY', snapshot.settings.hotkeyToggle, JSON.stringify(snapshot.host.hotkeys.toggle))
+if (snapshot.settings.hotkeyToggle !== 'Control+Alt+Shift+Space') {
+  throw new Error('packaged app has stale default hotkey')
+}
+if (!snapshot.host.hotkeys.toggle.ok) throw new Error('packaged hotkey not registered')
 if (count !== 1) throw new Error('packaged app did not add a clipboard card')
 console.log('PACKAGED_SMOKE_OK')
 await app.evaluate(({ app }) => app.exit(0)).catch(() => {})

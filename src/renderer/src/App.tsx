@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import type { MutationResult, ShelfItemView, ToastTone, UiCommand } from '@shared/types'
 import { useAppStore } from './store'
@@ -6,12 +6,12 @@ import { Header } from './components/Header'
 import { SearchFilter, type Counts } from './components/SearchFilter'
 import { ItemList } from './components/ItemList'
 import { EmptyState } from './components/EmptyState'
+import { EdgePeek } from './components/EdgePeek'
 import { Footer } from './components/Footer'
 import { SelectionBar } from './components/SelectionBar'
 import { ToastHost } from './components/ToastHost'
 import { DropOverlay } from './components/DropOverlay'
 import { ResizeHandles } from './components/ResizeHandles'
-import { SettingsPanel } from './components/SettingsPanel'
 import { Onboarding } from './components/Onboarding'
 import { InfoSheet } from './components/InfoSheet'
 import { ContextMenu } from './components/ContextMenu'
@@ -24,6 +24,10 @@ import {
   matchesQuery,
   modifierPressed
 } from './lib/utils'
+
+const SettingsPanel = lazy(() =>
+  import('./components/SettingsPanel').then((module) => ({ default: module.SettingsPanel }))
+)
 
 export default function App() {
   const snapshot = useAppStore((state) => state.snapshot)
@@ -99,7 +103,7 @@ export default function App() {
   const showEntering = (): void => {
     setEntering(true)
     if (enteringTimer.current) window.clearTimeout(enteringTimer.current)
-    enteringTimer.current = window.setTimeout(() => setEntering(false), 220)
+    enteringTimer.current = window.setTimeout(() => setEntering(false), 360)
   }
 
   const pushToast = (message: string, tone: ToastTone = 'info'): void => {
@@ -130,6 +134,15 @@ export default function App() {
     return () => {
       if (enteringTimer.current) window.clearTimeout(enteringTimer.current)
     }
+  }, [])
+
+  useEffect(() => {
+    // Load the heavier settings bundle after first paint so the shelf itself
+    // stays small and opens instantly; opening settings later is then cached.
+    const timer = window.setTimeout(() => {
+      void import('./components/SettingsPanel')
+    }, 1500)
+    return () => window.clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -615,6 +628,7 @@ export default function App() {
             </div>
           </div>
         </div>
+        <EdgePeek />
       </div>
     )
   }
@@ -630,8 +644,7 @@ export default function App() {
       data-testid="app-shell"
     >
       <div className="shelf" data-testid="shelf">
-        <Header />
-        {host && !host.hotkeys.toggle.ok ? (
+        <Header />        {host && !host.hotkeys.toggle.ok ? (
           <div className="warning-banner">
             <AlertTriangle size={12} />
             <span className="warning-text">
@@ -674,12 +687,17 @@ export default function App() {
         <ToastHost />
         <ResizeHandles />
         <DropOverlay />
-        {overlay === 'settings' ? <SettingsPanel /> : null}
+        {overlay === 'settings' ? (
+          <Suspense fallback={null}>
+            <SettingsPanel />
+          </Suspense>
+        ) : null}
         {overlay === 'onboarding' ? <Onboarding /> : null}
         {overlay === 'info' ? <InfoSheet /> : null}
         {menu ? <ContextMenu /> : null}
         {confirm ? <ConfirmDialog /> : null}
       </div>
+      <EdgePeek />
     </div>
   )
 }

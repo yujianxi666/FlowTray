@@ -42,6 +42,21 @@ export class SettingsStore {
       logger.error('settings.load_failed', { error })
     }
     const normalized = normalizeSettings(raw)
+    const legacyHotkey = new Set(['Control+Shift+Space', 'Control+Alt+Space'])
+    const migrated = this.db.get<{ value: string }>(
+      'SELECT value FROM meta WHERE key = ?',
+      'hotkey_default_v2'
+    )
+    if (!migrated) {
+      if (legacyHotkey.has(normalized.hotkeyToggle)) {
+        normalized.hotkeyToggle = DEFAULT_SETTINGS.hotkeyToggle
+      }
+      this.db.run(
+        'INSERT INTO meta(key, value) VALUES(?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value',
+        'hotkey_default_v2',
+        JSON.stringify(true)
+      )
+    }
     this.persist(normalized)
     return normalized
   }

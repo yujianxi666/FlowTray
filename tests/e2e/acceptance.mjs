@@ -201,14 +201,14 @@ await page.evaluate(() => window.flowtray.app.hideWindow())
 await page.waitForTimeout(400)
 let visible = await app.evaluate(({ BrowserWindow }) => {
   const win = BrowserWindow.getAllWindows().find((entry) => entry.getTitle().includes('FlowTray'))
-  return win?.isVisible() ?? false
+  return Boolean(win?.isVisible() && (win?.getBounds().width ?? 0) > 100)
 })
-assert.equal(visible, false, 'window hides')
+assert.equal(visible, false, 'window hides (peek handle may remain)')
 await page.evaluate(() => window.flowtray.app.toggleWindow())
 await page.waitForTimeout(500)
 visible = await app.evaluate(({ BrowserWindow }) => {
   const win = BrowserWindow.getAllWindows().find((entry) => entry.getTitle().includes('FlowTray'))
-  return win?.isVisible() ?? false
+  return Boolean(win?.isVisible() && (win?.getBounds().width ?? 0) > 100)
 })
 assert.equal(visible, true, 'window shows again')
 log('window hide/show toggle works')

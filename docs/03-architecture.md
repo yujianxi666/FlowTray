@@ -19,7 +19,7 @@
 │  ├─ EdgeRevealService   光标轮询、边缘停留                                     │
 │  └─ UndoManager         删除/清空/到期的单槽撤销                               │
 │                                                                            │
-│  ShelfWindow: 无边框透明 BrowserWindow + acrylic（Win11）+ 自定义贴边/尺寸    │
+│  ShelfWindow: 无边框透明 BrowserWindow + CSS 半透明 + 自定义贴边/尺寸/peek │
 │  IPC: contextBridge + Zod 校验 + sender 校验 + 自定义 flowtray:// 缩略图协议   │
 └──────────────────────────────────┬─────────────────────────────────────────┘
                                    │ typed IPC (invoke/on)
@@ -141,8 +141,9 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 
 ## 8. 窗口与系统集成
 
-- `transparent: true`、`frame: false`、`skipTaskbar: true`、`backgroundColor: '#00000000'`；Win11 用 `setBackgroundMaterial('acrylic')`，不支持则 CSS 半透明。
-- 卡片区域 396×680，外层窗口额外 16px gutter；贴右时窗口 x=工作区右-412，卡片右边缘贴屏幕。
+- `transparent: true`、`frame: false`、`skipTaskbar: true`、`backgroundColor: '#00000000'`；**不使用系统 `setBackgroundMaterial('acrylic')`**，因为透明窗 + acrylic 会在卡片外的矩形区域露出半透明/黑色底材。半透明由 CSS alpha + `backdrop-filter` 完成，窗口与卡片等大。
+- 卡片区域 396×680；窗口不保留 16px gutter；贴右时窗口 x=工作区右-396，卡片右边缘贴屏幕。左/上/下圆角之外的透明三角由 DWM 直接透出桌面。
+- 边缘提示条复用同一个 BrowserWindow：窗口临时收窄为 32×180、`setIgnoreMouseEvents(true)`、`showInactive`；光标进入贴边 1/4 区域时显示，贴边停留后恢复 396×680 并聚焦/展开。不会新增渲染进程。
 - 自定义 resize：渲染层 8 个把手 + IPC 设置 bounds；提交后写设置。
 - 边缘唤出 150ms 轮询、450ms 停留、离边 80px 重新武装；不安装钩子。
 - 全局快捷键注册失败会回滚到旧值；录制时暂停注册，避免按键被自己拦截。
@@ -162,14 +163,16 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 - 日志脱敏；不记录剪贴板内容、文件内容、完整 URL。
 - 清除数据：关闭 DB → 删除 storage/drag-cache/thumbs → 重建；重置全部还包括 DB、日志、设置。
 
-## 10. 性能
+## 10. 性能与体积
 
-- 窗口常驻（不做每次创建）；启动到可操作 < 1s。
-- 快照 60ms 合并；卡片列表只渲染当前筛选，CSS `content-visibility` 未启用（数量上限 3000）。
+- 窗口常驻（不做每次创建）；启动到可操作 < 1s；快捷键呼出实测 3ms。
+- 快照 60ms 合并；卡片列表只渲染当前筛选，数量上限 3000。
 - 图片缩略图 512px 长边，列表用 CSS 显示；非图片不生成原生图标。
-- 50 卡实测：数据写入+渲染 233ms，滚动布局 112ms。
-- 大文件引用不读内容；校验仅 `stat`；拖出复制有 64MB 硬链接失败阈值，避免卡 UI。
-- 数据库 WAL；批量固定/删除在事务中完成。
+- 设置页懒加载为独立 chunk（约 53KB），首屏 JS 从 799KB 降到 751KB；首屏后 1.5s 预取，打开设置不等待。
+- 单窗口边缘提示：peek 复用同一个 BrowserWindow，不新增 renderer/GPU 进程。
+- 去掉系统 acrylic 与 16px gutter：窗口像素减少约 6%，没有额外 DWM 材质层。
+- 打包只保留 zh-CN / en-US 语言包，`compression: maximum`；NSIS 从 124.5MB 降到 116.0MB，Portable 从 112.2MB 降到 104.5MB。
+- 运行时实测（Windows 11、单屏、7s idle）：4 个进程，工作集约 424MB，私有内存约 285MB；Electron 的底层成本，继续降需要换技术栈。
 
 ## 11. 目录与关键文件
 
@@ -177,7 +180,7 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 | --- | --- |
 | `src/main/index.ts` | app 生命周期、协议、单实例、崩溃恢复 |
 | `src/main/app-controller.ts` | 服务编排、设置副作用、快照、迁移、清空 |
-| `src/main/window/shelf.ts` | 窗口、贴边、尺寸、显隐、acrylic |
+| `src/main/window/shelf.ts` | 窗口、贴边、尺寸、显隐、peek、自动隐藏 |
 | `src/main/services/items.ts` | 领域核心（最大文件） |
 | `src/main/services/drag.ts` | 拖出暂存与 startDrag |
 | `src/main/services/clipboard.ts` | 剪贴板读写/监听 |

@@ -566,7 +566,7 @@ function DragSection({ settings, update }: BaseProps) {
         </SettingRow>
         <SettingRow
           label="拖出时"
-          hint="剪切会移动源文件；复制会使用安全的临时副本。"
+          hint="复制：目标收到安全副本，暂存台保留。剪切：目标会移动源文件；只有文件真的被移走，卡片才消失。目标若只复制，卡片仍保留。"
         >
           <Segmented
             value={settings.dragOutEffect}
@@ -612,6 +612,9 @@ function DragSection({ settings, update }: BaseProps) {
             <span>·</span>
             按住 {DRAG_MODIFIER_LABEL[settings.dragModifier]} 变为
             <b>{settings.dragOutEffect === 'copy' ? '剪切' : '复制'}</b>
+          </div>
+          <div className="example-line example-note">
+            剪切不是「从暂存台删除」：它只让目标应用尝试移动源文件。目标若执行复制，卡片仍会保留。
           </div>
         </div>
       </SettingGroup>
@@ -787,7 +790,7 @@ function ShortcutsSection({ settings, host, update }: BaseProps) {
       <SettingGroup title="全局">
         <HotkeyRecorder
           label="呼出 / 隐藏流转台"
-          hint="默认 Ctrl + Alt + Space"
+          hint="默认 Ctrl + Alt + Shift + Space"
           accelerator={settings.hotkeyToggle}
           status={host.hotkeys.toggle}
           onSave={(value) => update({ hotkeyToggle: value })}
@@ -813,7 +816,7 @@ function ShortcutsSection({ settings, host, update }: BaseProps) {
           className="text-action"
           onClick={() =>
             void update({
-              hotkeyToggle: 'Control+Alt+Space',
+              hotkeyToggle: 'Control+Alt+Shift+Space',
               hotkeyCapture: 'Control+Shift+D'
             })
           }
@@ -1014,7 +1017,9 @@ function HotkeyRecorder({
       }
       const value = acceleratorFromEvent(event)
       if (!value) {
-        if (!['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
+        if (['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
+          setError('还差一个主键：全局快捷键不能只由 Ctrl / Alt / Shift 组成，例如 Ctrl + Alt + Shift + Space。')
+        } else if (!['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
           setError('请使用字母、数字、F1–F24 或方向键，并至少搭配一个修饰键。')
         }
         return
@@ -1023,7 +1028,12 @@ function HotkeyRecorder({
       setListening(false)
       setError(null)
       void saveRef.current(value).then((ok) => {
-        if (ok) pushToast(`快捷键已更新为 ${formatAccelerator(value)}。`, 'success')
+        if (ok) {
+          pushToast(`快捷键已更新为 ${formatAccelerator(value)}。`, 'success')
+          void window.flowtray.shortcuts.resume()
+        } else {
+          setError('快捷键注册失败，已保留原设置。')
+        }
       })
     }
     window.addEventListener('keydown', onKeyDown, true)
@@ -1038,7 +1048,7 @@ function HotkeyRecorder({
     <div className={cx('hotkey-row', listening && 'is-listening')}>
       <div className="hotkey-label">
         {label}
-        <span>{listening ? '请按下新的组合键，Esc 取消' : hint}</span>
+        <span>{listening ? '请按下新的组合键（需包含一个主键），Esc 取消' : hint}</span>
         {!status.ok ? <em>{status.error ?? '快捷键未生效'}</em> : null}
         {error ? <em>{error}</em> : null}
       </div>

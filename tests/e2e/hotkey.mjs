@@ -40,13 +40,13 @@ assertTrue(host.hotkeys.toggle.ok, 'global toggle hotkey registered')
 const isVisible = () =>
   app.evaluate(({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows().find((entry) => entry.getTitle().includes('FlowTray'))
-    return win?.isVisible() ?? false
+    return Boolean(win?.isVisible() && (win?.getBounds().width ?? 0) > 100)
   })
 
 const pressHotkey = () => {
   const script = `
 Add-Type -AssemblyName System.Windows.Forms
-[System.Windows.Forms.SendKeys]::SendWait('^% ')
+[System.Windows.Forms.SendKeys]::SendWait('^%+ ')
 `
   execFileSync('powershell.exe', ['-NoProfile', '-STA', '-Command', script], {
     windowsHide: true

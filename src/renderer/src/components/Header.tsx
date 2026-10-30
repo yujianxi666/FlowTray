@@ -12,7 +12,7 @@ export function Header() {
   const items = snapshot?.items ?? []
   const count = items.length
   const side = settings?.shelfSide ?? 'right'
-  const hotkey = settings?.hotkeyToggle ?? 'Control+Alt+Space'
+  const hotkey = settings?.hotkeyToggle ?? 'Control+Alt+Shift+Space'
 
   const addClipboard = async (): Promise<void> => {
     if (adding) return
