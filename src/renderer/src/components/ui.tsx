@@ -32,7 +32,7 @@ export function BrandMark({ size = 30 }: { size?: number }) {
       <path
         d="M148 258 V332 C148 355 166 373 189 373 H323 C346 373 364 355 364 332 V258"
         fill="none"
-        stroke="#D8FF5C"
+        stroke="var(--accent)"
         strokeWidth="40"
         strokeLinecap="round"
         strokeLinejoin="round"

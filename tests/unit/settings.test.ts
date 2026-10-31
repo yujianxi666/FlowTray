@@ -13,6 +13,10 @@ describe('settings normalization', () => {
     expect(settings.defaultTtl).toBe('24h')
     expect(settings.shelfWidth).toBe(396)
     expect(settings.hotkeyToggle).toBe('Control+Alt+Shift+Space')
+    expect(settings.darkBackground).toBe('#000000')
+    expect(settings.darkAccent).toBe('#FFFFFF')
+    expect(settings.lightBackground).toBe('#FFFFFF')
+    expect(settings.lightAccent).toBe('#808080')
     expect(settings.launchAsAdmin).toBe(false)
   })
 

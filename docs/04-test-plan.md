@@ -28,7 +28,7 @@
 
 命令：`pnpm test`
 
-结果：**7 个文件 / 34 个测试全部通过**。
+结果：**8 个文件 / 38 个测试全部通过**。
 
 | 文件 | 覆盖 |
 | --- | --- |
@@ -38,6 +38,7 @@
 | `undo.test.ts` | 撤销窗口、一次性取出、过期、替换 |
 | `database.test.ts` | schema、持久化、事务回滚 |
 | `redact.test.ts` | 绝对路径/文件名/邮箱/URL/内容键脱敏 |
+| `theme.test.ts` | 深/浅主题色推导、背景明暗与文字色、alpha、撞色强调色 |
 | `item-presentation.test.ts` | 卡片元信息、来源、筛选、搜索全文、到期色调、修饰键反转 |
 
 ### 2.2 E2E 功能验收
@@ -66,8 +67,8 @@
 
 实测性能（最近一次完整跑）：
 
-- 写入 50 条 + 渲染：**245ms**
-- 滚动到底部布局：**111ms**
+- 写入 50 条 + 渲染：**252ms**
+- 滚动到底部布局：**105ms**
 - 单条 50 卡追加平均 < 5ms
 
 （首次跑为 412ms，含冷启动缓存；数据规模与 UI 相同。）
@@ -146,6 +147,9 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 | 同上 | 贴边停留 | 展开为 396×680 完整悬浮窗 |
 | 同上 | 触发 blur 事件 | 220ms 事件路径隐藏；600ms 看门狗兜底 |
 | `node tests/e2e/hotkey-migration.mjs` | 旧 `Control+Shift+Space` 数据 | 启动迁移为新的 4 键默认并注册成功 |
+| `node tests/e2e/theme-colors.mjs` | 深色背景 `#101820` + 强调 `#FF5C8A` | CSS 变量、品牌标记、空状态插画全部跟随 |
+| 同上 | 浅色背景 `#FFFFFF` + 强调 `#5B6670` | `--accent` / `--bg-shell` / `--ink` 正确，无黑框 |
+| 同上 | 设置页主题配色控件 | 深/浅两组共 4 个色块、HEX、恢复默认配色可见；深色默认 `#000000/#FFFFFF`、浅色默认 `#FFFFFF/#808080` |
 
 ## 3. 验收标准对照
 
@@ -156,7 +160,7 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 | 复制一段文本后可在其他应用粘贴 | 通过 | E2E 系统剪贴板读取 |
 | 重启后未过期/固定内容恢复 | 通过 | E2E 重启持久化 |
 | 全局快捷键 1 秒内呼出/隐藏 | 通过 | 115ms / 3ms |
-| 50 张卡片不卡顿 | 通过 | 245ms 加载 / 111ms 滚动 |
+| 50 张卡片不卡顿 | 通过 | 252ms 加载 / 105ms 滚动 |
 | 清空后可撤销 | 通过 | 8→1→8 |
 | 原文件缺失有明确状态 | 通过（数据层 + UI 状态） | `missing` + 重新定位；人工可复现 |
 | 无任何上传/账号 | 通过 | 无网络请求；全部本地 |
@@ -246,6 +250,7 @@ pnpm test:e2e
 pnpm test:hotkey
 node tests/e2e/shortcuts.mjs
 node tests/e2e/edge-peek.mjs
+node tests/e2e/theme-colors.mjs
 node tests/e2e/hotkey-migration.mjs
 node tests/e2e/dragout.mjs   # 可选，需桌面交互
 pnpm dist:dir                # 打包冒烟
@@ -271,6 +276,8 @@ pnpm dist:dir                # 打包冒烟
 | 应用在边缘被其他置顶窗口遮挡 | 显示时 `moveTop` + 置顶层级；桌面截图验证 |
 | 搜索不查完整文本（只查 preview） | 加入 `textContent`，单元测试覆盖 |
 | 安装包偏大（124.5MB） | 保留中英语言包、最高压缩、设置页懒加载，降到 116MB / Portable 104.5MB |
+| 主题只有固定酸橙，无法改配色 | 增加深/浅独立背景色 + 强调色；默认深色黑+白、浅色白+灰；文字亮度自适应 |
+| 悬浮窗圆角偏小 | `--radius-lg` 22 → 28px，圆角更向内收 |
 
 ## 7. 未解决/已知风险
 

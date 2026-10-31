@@ -4,7 +4,7 @@
     "Noto Sans SC", sans-serif;
   --font-display: "Segoe UI Variable Display", "Segoe UI", "Microsoft YaHei UI", sans-serif;
   --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "Courier New", monospace;
-  --radius-lg: 22px;
+  --radius-lg: 28px;
   --radius-md: 13px;
   --radius-sm: 9px;
   --ease: cubic-bezier(0.2, 0.75, 0.2, 1);
@@ -116,10 +116,5 @@
   --type-app: #4f5c4d;
 }
 
-[data-glass="true"] .shelf {
-  --bg-shell: rgba(17, 22, 18, 0.84);
-}
-
-[data-theme="light"][data-glass="true"] .shelf {
-  --bg-shell: rgba(250, 248, 240, 0.86);
-}
+/* --bg-shell / accent variables are supplied at runtime from the editable
+   dark/light theme colors in settings. */

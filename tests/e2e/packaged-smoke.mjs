@@ -47,6 +47,14 @@ if (snapshot.settings.hotkeyToggle !== 'Control+Alt+Shift+Space') {
   throw new Error('packaged app has stale default hotkey')
 }
 if (!snapshot.host.hotkeys.toggle.ok) throw new Error('packaged hotkey not registered')
+if (
+  snapshot.settings.darkBackground !== '#000000' ||
+  snapshot.settings.darkAccent !== '#FFFFFF' ||
+  snapshot.settings.lightBackground !== '#FFFFFF' ||
+  snapshot.settings.lightAccent !== '#808080'
+) {
+  throw new Error('packaged theme defaults are stale')
+}
 if (count !== 1) throw new Error('packaged app did not add a clipboard card')
 console.log('PACKAGED_SMOKE_OK')
 await app.evaluate(({ app }) => app.exit(0)).catch(() => {})

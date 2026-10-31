@@ -849,7 +849,7 @@
   width: 76px;
   height: 92px;
   padding: 10px;
-  border: 1px solid rgba(216, 255, 92, 0.34);
+  border: 1px solid var(--accent-line);
   border-right: 0;
   border-radius: 10px 0 0 10px;
   background: linear-gradient(155deg, #252c21, #10140f);

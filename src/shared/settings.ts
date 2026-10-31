@@ -3,6 +3,7 @@ import {
   SENSITIVE_APPS_DEFAULT,
   SENSITIVE_TITLES_DEFAULT
 } from './constants'
+import { DEFAULT_THEME_COLORS } from './theme'
 
 export const settingsSchema = z.object({
   theme: z.enum(['system', 'dark', 'light']),
@@ -24,6 +25,10 @@ export const settingsSchema = z.object({
   viewMode: z.enum(['list', 'grid']),
   showSource: z.boolean(),
   glass: z.boolean(),
+  darkBackground: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  darkAccent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  lightBackground: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  lightAccent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   dropEffect: z.enum(['copy', 'cut']),
   dragOutEffect: z.enum(['copy', 'cut']),
   dragModifier: z.enum(['ctrl', 'shift', 'alt']),
@@ -65,6 +70,10 @@ export const DEFAULT_SETTINGS: Settings = {
   viewMode: 'list',
   showSource: true,
   glass: true,
+  darkBackground: DEFAULT_THEME_COLORS.darkBackground,
+  darkAccent: DEFAULT_THEME_COLORS.darkAccent,
+  lightBackground: DEFAULT_THEME_COLORS.lightBackground,
+  lightAccent: DEFAULT_THEME_COLORS.lightAccent,
   dropEffect: 'copy',
   dragOutEffect: 'copy',
   dragModifier: 'ctrl',

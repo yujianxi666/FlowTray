@@ -18,7 +18,7 @@
     "test:watch": "vitest",
     "test:e2e": "node tests/e2e/acceptance.mjs",
     "test:hotkey": "node tests/e2e/hotkey.mjs",
-    "test:ui": "node tests/e2e/shortcuts.mjs && node tests/e2e/edge-peek.mjs && node tests/e2e/hotkey-migration.mjs",
+    "test:ui": "node tests/e2e/shortcuts.mjs && node tests/e2e/edge-peek.mjs && node tests/e2e/theme-colors.mjs && node tests/e2e/hotkey-migration.mjs",
     "test:all": "pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e && pnpm test:hotkey",
     "dist": "pnpm build && electron-builder --win nsis portable",
     "dist:dir": "pnpm build && electron-builder --win --dir"

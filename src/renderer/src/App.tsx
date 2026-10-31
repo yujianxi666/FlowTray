@@ -24,6 +24,7 @@ import {
   matchesQuery,
   modifierPressed
 } from './lib/utils'
+import { applyThemeVariables, resolveThemeColors } from './lib/theme'
 
 const SettingsPanel = lazy(() =>
   import('./components/SettingsPanel').then((module) => ({ default: module.SettingsPanel }))
@@ -122,7 +123,21 @@ export default function App() {
     root.dataset.theme = resolvedTheme
     root.dataset.glass = String(Boolean(settings?.glass && host?.supportsAcrylic))
     root.dataset.reduceMotion = String(Boolean(settings?.reduceMotion))
-  }, [resolvedTheme, settings?.glass, settings?.reduceMotion, host?.supportsAcrylic])
+    const colors = resolveThemeColors(resolvedTheme, settings ?? null)
+    applyThemeVariables(root, {
+      ...colors,
+      glass: Boolean(settings?.glass && host?.supportsAcrylic)
+    })
+  }, [
+    resolvedTheme,
+    settings?.glass,
+    settings?.reduceMotion,
+    settings?.darkBackground,
+    settings?.darkAccent,
+    settings?.lightBackground,
+    settings?.lightAccent,
+    host?.supportsAcrylic
+  ])
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock((value) => value + 1), 30_000)

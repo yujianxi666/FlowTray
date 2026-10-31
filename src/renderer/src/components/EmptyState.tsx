@@ -94,8 +94,8 @@ function EmptyArt() {
     >
       <defs>
         <linearGradient id="empty-card" x1="54" y1="28" x2="112" y2="76" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#D8FF5C" stopOpacity="0.34" />
-          <stop offset="1" stopColor="#D8FF5C" stopOpacity="0.1" />
+          <stop stopColor="var(--accent)" stopOpacity="0.34" />
+          <stop offset="1" stopColor="var(--accent)" stopOpacity="0.1" />
         </linearGradient>
       </defs>
       <g opacity="0.8">
@@ -111,7 +111,7 @@ function EmptyArt() {
           stroke="currentColor"
           strokeOpacity="0.3"
         />
-        <circle cx="37" cy="29" r="3.2" fill="#D8FF5C" fillOpacity="0.8" />
+        <circle cx="37" cy="29" r="3.2" fill="var(--accent)" fillOpacity="0.8" />
         <rect x="44" y="26" width="19" height="2" rx="1" fill="currentColor" fillOpacity="0.32" />
         <rect x="44" y="32" width="13" height="2" rx="1" fill="currentColor" fillOpacity="0.22" />
       </g>
@@ -123,17 +123,17 @@ function EmptyArt() {
           height="43"
           rx="9"
           fill="url(#empty-card)"
-          stroke="#D8FF5C"
+          stroke="var(--accent)"
           strokeOpacity="0.8"
         />
-        <circle cx="76" cy="38" r="4.8" fill="#D8FF5C" fillOpacity="0.95" />
+        <circle cx="76" cy="38" r="4.8" fill="var(--accent)" fillOpacity="0.95" />
         <rect x="86" y="35" width="25" height="2.5" rx="1.25" fill="currentColor" fillOpacity="0.8" />
         <rect x="86" y="42" width="17" height="2" rx="1" fill="currentColor" fillOpacity="0.48" />
-        <path d="M74 53h35" stroke="#D8FF5C" strokeOpacity="0.55" strokeLinecap="round" />
+        <path d="M74 53h35" stroke="var(--accent)" strokeOpacity="0.55" strokeLinecap="round" />
       </g>
       <path
         d="M88 76v12"
-        stroke="#D8FF5C"
+        stroke="var(--accent)"
         strokeOpacity="0.75"
         strokeWidth="1.5"
         strokeLinecap="round"
@@ -141,7 +141,7 @@ function EmptyArt() {
       />
       <path
         d="M82 85l6 6 6-6"
-        stroke="#D8FF5C"
+        stroke="var(--accent)"
         strokeOpacity="0.85"
         strokeWidth="1.5"
         strokeLinecap="round"
@@ -155,7 +155,7 @@ function EmptyArt() {
         strokeLinecap="round"
       />
       <path d="M48 103h66" stroke="currentColor" strokeOpacity="0.14" strokeWidth="1" />
-      <circle cx="139" cy="80" r="2" fill="#D8FF5C" fillOpacity="0.6" />
+      <circle cx="139" cy="80" r="2" fill="var(--accent)" fillOpacity="0.6" />
       <circle cx="23" cy="78" r="1.5" fill="currentColor" fillOpacity="0.3" />
     </svg>
   )

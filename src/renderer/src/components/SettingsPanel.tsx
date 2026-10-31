@@ -13,6 +13,7 @@ import {
   Palette,
   Plus,
   RefreshCw,
+  RotateCcw,
   ShieldCheck,
   Terminal,
   Timer,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react'
 import type { HostInfo, SettingsSection, StorageUsage } from '@shared/types'
 import type { Settings } from '@shared/settings'
+import { DEFAULT_THEME_COLORS } from '@shared/theme'
 import {
   CAPACITY_OPTIONS,
   DRAG_MODIFIER_LABEL,
@@ -336,7 +338,114 @@ function GeneralSection({ settings, host, update }: BaseProps) {
           />
         </SettingRow>
       </SettingGroup>
+
+      <ThemeColorGroup settings={settings} update={update} />
     </>
+  )
+}
+
+function ThemeColorGroup({ settings, update }: Pick<BaseProps, 'settings' | 'update'>) {
+  const reset = (): void => {
+    void update({
+      darkBackground: DEFAULT_THEME_COLORS.darkBackground,
+      darkAccent: DEFAULT_THEME_COLORS.darkAccent,
+      lightBackground: DEFAULT_THEME_COLORS.lightBackground,
+      lightAccent: DEFAULT_THEME_COLORS.lightAccent
+    })
+  }
+
+  return (
+    <SettingGroup title="主题配色">
+      <div className="theme-color-copy">
+        深色与浅色模式分别保存背景色和强调色，修改后立即生效。强调色会同步选中态、主按钮和品牌标记。
+      </div>
+      <div className="theme-color-grid">
+        <ColorMode
+          title="深色模式"
+          background={settings.darkBackground}
+          accent={settings.darkAccent}
+          onChange={(patch) => void update(patch)}
+        />
+        <ColorMode
+          title="浅色模式"
+          background={settings.lightBackground}
+          accent={settings.lightAccent}
+          onChange={(patch) => void update(patch)}
+        />
+      </div>
+      <div className="theme-color-footer">
+        <span>深色默认黑 + 白；浅色默认白 + 灰。</span>
+        <button type="button" className="theme-reset" onClick={reset}>
+          <RotateCcw size={11} />
+          恢复默认配色
+        </button>
+      </div>
+    </SettingGroup>
+  )
+}
+
+function ColorMode({
+  title,
+  background,
+  accent,
+  onChange
+}: {
+  title: string
+  background: string
+  accent: string
+  onChange: (patch: Partial<Settings>) => void
+}) {
+  return (
+    <div className="theme-color-panel">
+      <div className="theme-color-heading">
+        <span
+          className="theme-color-dot"
+          style={{ background, boxShadow: `inset 0 0 0 1px ${accent}` }}
+        />
+        {title}
+      </div>
+      <ColorField
+        label="背景色"
+        value={background}
+        onChange={(value) =>
+          onChange(title === '深色模式' ? { darkBackground: value } : { lightBackground: value })
+        }
+      />
+      <ColorField
+        label="强调色"
+        value={accent}
+        onChange={(value) =>
+          onChange(title === '深色模式' ? { darkAccent: value } : { lightAccent: value })
+        }
+      />
+    </div>
+  )
+}
+
+function ColorField({
+  label,
+  value,
+  onChange
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <label className="color-field">
+      <span className="color-field-swatch" style={{ background: value }}>
+        <input
+          type="color"
+          value={value}
+          aria-label={label}
+          onChange={(event) => onChange(event.target.value.toUpperCase())}
+        />
+      </span>
+      <span className="color-field-text">
+        <b>{label}</b>
+        <code>{value.toUpperCase()}</code>
+      </span>
+    </label>
   )
 }
 
@@ -1113,7 +1222,7 @@ function BrandLogo() {
         <path
           d="M148 258 V332 C148 355 166 373 189 373 H323 C346 373 364 355 364 332 V258"
           fill="none"
-          stroke="#D8FF5C"
+          stroke="var(--accent)"
           strokeWidth="40"
           strokeLinecap="round"
           strokeLinejoin="round"

@@ -166,9 +166,12 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 ## 10. 性能与体积
 
 - 窗口常驻（不做每次创建）；启动到可操作 < 1s；快捷键呼出实测 3ms。
+- 50 卡实测：数据写入+渲染 252ms，滚动布局 105ms。
 - 快照 60ms 合并；卡片列表只渲染当前筛选，数量上限 3000。
 - 图片缩略图 512px 长边，列表用 CSS 显示；非图片不生成原生图标。
-- 设置页懒加载为独立 chunk（约 53KB），首屏 JS 从 799KB 降到 751KB；首屏后 1.5s 预取，打开设置不等待。
+- 设置页懒加载为独立 chunk（约 57KB），首屏 JS 约 756KB；首屏后 1.5s 预取，打开设置不等待。
+- 主题配色：设置保存 `darkBackground/darkAccent/lightBackground/lightAccent` 四个 hex；渲染层按当前主题把 `--bg-shell`、`--ink*`、`--line*`、`--bg-card*`、`--accent*` 写入 `:root`。背景亮度决定文字深浅，强调色亮度决定按钮文字色；固定语义色（pin/危险/类型）不跟随强调色。
+- 空状态 SVG、引导插画、品牌标记与 edge peek 都改用 `var(--accent)`，切换颜色不需要重渲染组件树。
 - 单窗口边缘提示：peek 复用同一个 BrowserWindow，不新增 renderer/GPU 进程。
 - 去掉系统 acrylic 与 16px gutter：窗口像素减少约 6%，没有额外 DWM 材质层。
 - 打包只保留 zh-CN / en-US 语言包，`compression: maximum`；NSIS 从 124.5MB 降到 116.0MB，Portable 从 112.2MB 降到 104.5MB。
@@ -186,6 +189,7 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 | `src/main/services/clipboard.ts` | 剪贴板读写/监听 |
 | `src/main/store/db.ts` | schema 与事务 |
 | `src/shared/settings.ts` | Zod schema + 默认值 + 敏感判定 |
+| `src/renderer/src/lib/theme.ts` | 主题色推导/注入：背景、强调色、文字对比、CSS 变量 |
 | `src/renderer/src/App.tsx` | 浮层路由、快捷键、拖拽生命周期 |
 | `src/renderer/src/store.ts` | 快照与 UI 状态 |
 

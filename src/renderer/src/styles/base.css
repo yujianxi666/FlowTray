@@ -134,7 +134,7 @@ img {
   background:
     linear-gradient(180deg, rgba(20, 26, 20, 0.92), rgba(31, 39, 29, 0.82)),
     var(--bg-shell);
-  box-shadow: inset 0 0 0 1px rgba(216, 255, 92, 0.16);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
 }
 
 [data-side="right"] .edge-peek {
@@ -159,7 +159,7 @@ img {
     var(--accent) 84%,
     transparent
   );
-  box-shadow: 0 0 14px rgba(216, 255, 92, 0.55);
+  box-shadow: 0 0 14px var(--accent-line);
 }
 
 [data-side="right"] .edge-peek::before {
