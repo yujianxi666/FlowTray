@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const root = process.cwd()
-const exe = join(root, 'release', 'win-unpacked', 'FlowTray.exe')
+const exe = process.env.FLOWTRAY_EXE ?? join(root, 'release', 'win-unpacked', 'FlowTray.exe')
 if (!existsSync(exe)) throw new Error(`missing packaged app: ${exe}`)
-const userData = mkdtempSync(join(tmpdir(), 'flowtray-packaged-'))
+const userData = mkdtempSync(join(root, '.tmp-packaged-'))
 const env = { ...process.env }
 delete env.ELECTRON_RUN_AS_NODE
 env.FLOWTRAY_USER_DATA = userData
@@ -14,7 +14,7 @@ env.FLOWTRAY_E2E = '1'
 
 const app = await electron.launch({
   executablePath: exe,
-  args: [],
+  args: process.env.FLOWTRAY_NOSANDBOX === '1' ? ['--no-sandbox'] : [],
   cwd: root,
   env
 })
@@ -56,5 +56,8 @@ if (
   throw new Error('packaged theme defaults are stale')
 }
 if (count !== 1) throw new Error('packaged app did not add a clipboard card')
+if (process.env.FLOWTRAY_SHOT) {
+  await page.locator('[data-testid="shelf"]').screenshot({ path: process.env.FLOWTRAY_SHOT })
+}
 console.log('PACKAGED_SMOKE_OK')
 await app.evaluate(({ app }) => app.exit(0)).catch(() => {})

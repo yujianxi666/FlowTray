@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const root = process.cwd()
-const userData = mkdtempSync(join(tmpdir(), 'flowtray-hotkey-'))
+const userData = mkdtempSync(join(root, '.tmp-hotkey-'))
 const env = { ...process.env }
 delete env.ELECTRON_RUN_AS_NODE
 env.FLOWTRAY_USER_DATA = userData
@@ -14,8 +14,12 @@ const shots = join(root, 'screenshots')
 mkdirSync(shots, { recursive: true })
 
 const app = await electron.launch({
-  executablePath: join(root, 'node_modules', 'electron', 'dist', 'electron.exe'),
-  args: ['.'],
+  executablePath:
+    process.env.FLOWTRAY_EXE ??
+    join(root, 'node_modules', 'electron', 'dist', 'electron.exe'),
+  args: process.env.FLOWTRAY_EXE
+    ? [...(process.env.FLOWTRAY_NOSANDBOX === '1' ? ['--no-sandbox'] : [])]
+    : ['.', ...(process.env.FLOWTRAY_NOSANDBOX === '1' ? ['--no-sandbox'] : [])],
   cwd: root,
   env
 })

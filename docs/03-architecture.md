@@ -49,7 +49,7 @@
 | 拖拽 | 原生 HTML5 drag + Electron `webContents.startDrag` | 唯一能与其他 Windows 应用进行 OLE 拖放的方式 |
 | 剪贴板 | Electron 45 异步 W3C Clipboard API | 45 起旧的同步 `readBuffer/readImage/availableFormats` 已移除 |
 | 测试 | Vitest + playwright-core `_electron` | 单元快；E2E 可控制主进程、截取真实桌面 |
-| 打包 | electron-builder | NSIS + Portable，成熟 |
+| 打包 | electron-builder | Portable 交付；NSIS 配置保留（本机执行策略拦截） |
 
 完整方案对比与未选方案见 [decisions-tech-stack.md](decisions-tech-stack.md)。
 
@@ -165,8 +165,8 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 
 ## 10. 性能与体积
 
-- 窗口常驻（不做每次创建）；启动到可操作 < 1s；快捷键呼出实测 3ms。
-- 50 卡实测：数据写入+渲染 252ms，滚动布局 105ms。
+- 窗口常驻（不做每次创建）；启动到可操作 < 1s；快捷键呼出实测 2ms、隐藏 103ms。
+- 50 卡实测：数据写入+渲染 238ms，滚动布局 96ms。
 - 快照 60ms 合并；卡片列表只渲染当前筛选，数量上限 3000。
 - 图片缩略图 512px 长边，列表用 CSS 显示；非图片不生成原生图标。
 - 设置页懒加载为独立 chunk（约 57KB），首屏 JS 约 756KB；首屏后 1.5s 预取，打开设置不等待。
@@ -174,8 +174,10 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 - 空状态 SVG、引导插画、品牌标记与 edge peek 都改用 `var(--accent)`，切换颜色不需要重渲染组件树。
 - 单窗口边缘提示：peek 复用同一个 BrowserWindow，不新增 renderer/GPU 进程。
 - 去掉系统 acrylic 与 16px gutter：窗口像素减少约 6%，没有额外 DWM 材质层。
-- 打包只保留 zh-CN / en-US 语言包，`compression: maximum`；NSIS 从 124.5MB 降到 116.0MB，Portable 从 112.2MB 降到 104.5MB。
-- 运行时实测（Windows 11、单屏、7s idle）：4 个进程，工作集约 424MB，私有内存约 285MB；Electron 的底层成本，继续降需要换技术栈。
+- **软件渲染**：`app.disableHardwareAcceleration()` 放在 ready 前；GPU 进程私有内存约 95MB → 40MB，整机私有内存 285MB → 200MB，工作集 424MB → 392MB。代价是动画使用 CPU；悬浮窗是低频静态界面，可接受。
+- **运行时裁剪**：`scripts/after-pack.cjs` 删除 `chrome_200_percent.pak`、`dxcompiler.dll`、`d3dcompiler_47.dll`（约 30MB 解包空间）；软件渲染不需要 DX 编译器和 200% pak，已在 125% 缩放打包冒烟验证。必须与软件渲染一起使用；如果未来恢复 GPU 加速要恢复这些文件。
+- 打包只保留 zh-CN / en-US 语言包，`compression: maximum`；Portable 104.5MB → **96.2MB**，解包应用约 330MB。NSIS 配置保留，但本机构建时安装器执行被 Windows 策略拦截，本轮未产出安装包。
+- 运行时实测（Windows 11、单屏、7s idle）：4 个进程，工作集约 **392MB**，私有内存约 **200MB**；继续下探需要换 Tauri/WinUI。
 
 ## 11. 目录与关键文件
 
@@ -190,6 +192,7 @@ Electron 45 的 `clipboard.read()` 返回 `ClipboardItem[]`；`getType()` 对文
 | `src/main/store/db.ts` | schema 与事务 |
 | `src/shared/settings.ts` | Zod schema + 默认值 + 敏感判定 |
 | `src/renderer/src/lib/theme.ts` | 主题色推导/注入：背景、强调色、文字对比、CSS 变量 |
+| `scripts/after-pack.cjs` | 打包后裁剪 Chromium 可选运行时（DX 编译器、200% pak） |
 | `src/renderer/src/App.tsx` | 浮层路由、快捷键、拖拽生命周期 |
 | `src/renderer/src/store.ts` | 快照与 UI 状态 |
 

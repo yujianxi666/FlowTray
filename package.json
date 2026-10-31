@@ -20,7 +20,8 @@
     "test:hotkey": "node tests/e2e/hotkey.mjs",
     "test:ui": "node tests/e2e/shortcuts.mjs && node tests/e2e/edge-peek.mjs && node tests/e2e/theme-colors.mjs && node tests/e2e/hotkey-migration.mjs",
     "test:all": "pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e && pnpm test:hotkey",
-    "dist": "pnpm build && electron-builder --win nsis portable",
+    "dist": "pnpm build && electron-builder --win portable",
+    "dist:installer": "pnpm build && electron-builder --win nsis",
     "dist:dir": "pnpm build && electron-builder --win --dir"
   },
   "pnpm": {

@@ -94,7 +94,7 @@ export class EdgeReveal {
       this.armed = false
       this.lastRevealAt = now
       this.lastPeekY = null
-      this.shelf.show('edge', false)
+      this.shelf.show('edge', true)
     }
   }
 

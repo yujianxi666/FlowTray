@@ -27,9 +27,10 @@ protocol.registerSchemesAsPrivileged([
   }
 ])
 
-if (process.env.FLOWTRAY_E2E === '1') {
-  app.disableHardwareAcceleration()
-}
+// FlowTray uses software rendering by default. The shelf is a small, static
+// surface; this removes ~90 MB of private GPU-process memory and keeps the
+// portable/installer runtime prunable. Do this before app.ready.
+app.disableHardwareAcceleration()
 
 app.setName('FlowTray')
 app.setAppUserModelId(APP_ID)

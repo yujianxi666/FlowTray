@@ -67,8 +67,8 @@
 
 实测性能（最近一次完整跑）：
 
-- 写入 50 条 + 渲染：**252ms**
-- 滚动到底部布局：**105ms**
+- 写入 50 条 + 渲染：**238ms**
+- 滚动到底部布局：**96ms**
 - 单条 50 卡追加平均 < 5ms
 
 （首次跑为 412ms，含冷启动缓存；数据规模与 UI 相同。）
@@ -83,12 +83,12 @@
 | --- | --- |
 | 注册 toggle | `Control+Alt+Shift+Space`，ok=true |
 | 注册 capture | `Control+Shift+D`，ok=true |
-| 隐藏耗时 | **115ms** |
-| 呼出耗时 | **3ms** |
+| 隐藏耗时 | **103ms** |
+| 呼出耗时 | **2ms** |
 | 贴右边缘 | bounds.x + width = workArea.right |
-| 隐藏后光标移入边缘中段 | 525ms 后显示 |
+| 隐藏后光标移入边缘中段 | 564ms 后显示 |
 
-说明：边缘检测为 150ms 轮询 + 450ms 停留，525ms 包含轮询相位；用户感知 < 0.7s。
+说明：边缘检测为 150ms 轮询 + 450ms 停留，564ms 包含轮询相位；用户感知 < 0.7s。
 
 ### 2.4 原生拖出到资源管理器
 
@@ -125,15 +125,17 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 | 项 | 结果 |
 | --- | --- |
 | unpacked 打包 | 成功，`release/win-unpacked/FlowTray.exe` |
-| packaged 冒烟 | 通过：标题、数据库、storage 创建、剪贴板暂存 1 张卡 |
+| packaged 冒烟 | 通过：标题、数据库、storage 创建、剪贴板暂存 1 张卡、快捷键注册、主题默认值 |
 | Portable | 成功启动；窗口 "FlowTray 流转台"；`flowtray.db`、`storage/` 在指定 userData 下创建 |
-| NSIS 安装包 | 生成 `release/FlowTray-0.1.0-x64.exe`（约 116.0MB） |
-| Portable 包 | 生成 `release/FlowTray-0.1.0-portable.exe`（约 104.5MB） |
+| Portable 包 | 生成 `release/FlowTray-0.1.0-portable.exe`（**96.2MB**，上一版 104.5MB） |
+| 运行时裁剪 | `chrome_200_percent.pak` / `dxcompiler.dll` / `d3dcompiler_47.dll` 已删除（约 30MB 解包空间） |
+| 软件渲染 | 4 进程；工作集约 392MB、私有内存约 200MB（上一版 424MB / 285MB） |
+| NSIS 安装包 | **本轮未产出**：生成安装器后执行时被本机 Windows 安装器策略拦截（`process failed 2`）；配置保留 |
 | 语言包 | 只保留 `zh-CN.pak` / `en-US.pak`（体积优化） |
 | 代码签名 | 未配置证书，electron-builder 明确跳过；SmartScreen 会提示 |
 | 安装/卸载流程 | **待人工**：安装到用户目录、快捷方式、卸载保留数据 |
 
-> 安装包已生成，但没有在本机执行安装/卸载，避免改动系统快捷方式与卸载注册表；发布前按第 4 节人工清单执行。
+> NSIS 安装包本轮被本机执行策略拦截，未做安装/卸载验证；发布前需在正常桌面会话重建并完成人工清单。Portable 已通过启动冒烟。
 
 ### 2.7 快捷键、边缘提示条、自动隐藏
 
@@ -159,8 +161,8 @@ $env:ELECTRON_BUILDER_BINARIES_MIRROR='https://npmmirror.com/mirrors/electron-bu
 | 拖到资源管理器 + 至少一个聊天/浏览器 | 部分通过：资源管理器实测；聊天/浏览器待人工 | 原生拖出日志 + 人工清单 |
 | 复制一段文本后可在其他应用粘贴 | 通过 | E2E 系统剪贴板读取 |
 | 重启后未过期/固定内容恢复 | 通过 | E2E 重启持久化 |
-| 全局快捷键 1 秒内呼出/隐藏 | 通过 | 115ms / 3ms |
-| 50 张卡片不卡顿 | 通过 | 252ms 加载 / 105ms 滚动 |
+| 全局快捷键 1 秒内呼出/隐藏 | 通过 | 103ms / 2ms |
+| 50 张卡片不卡顿 | 通过 | 238ms 加载 / 96ms 滚动 |
 | 清空后可撤销 | 通过 | 8→1→8 |
 | 原文件缺失有明确状态 | 通过（数据层 + UI 状态） | `missing` + 重新定位；人工可复现 |
 | 无任何上传/账号 | 通过 | 无网络请求；全部本地 |
@@ -275,7 +277,8 @@ pnpm dist:dir                # 打包冒烟
 | 拖出复制未尊重 `safeDragCopy` 设置 | DragService 注入 settings；关闭时直接拖源路径并提示 |
 | 应用在边缘被其他置顶窗口遮挡 | 显示时 `moveTop` + 置顶层级；桌面截图验证 |
 | 搜索不查完整文本（只查 preview） | 加入 `textContent`，单元测试覆盖 |
-| 安装包偏大（124.5MB） | 保留中英语言包、最高压缩、设置页懒加载，降到 116MB / Portable 104.5MB |
+| 安装包偏大（124.5MB） | 保留中英语言包、最高压缩、设置页懒加载；本轮再叠加软件渲染 + 运行时裁剪，Portable 降到 96.2MB |
+| 后台内存高（424MB 工作集 / 285MB 私有） | 软件渲染去掉约 90MB GPU 私有内存；实测 392MB / 200MB；再低需换 Tauri/WinUI |
 | 主题只有固定酸橙，无法改配色 | 增加深/浅独立背景色 + 强调色；默认深色黑+白、浅色白+灰；文字亮度自适应 |
 | 悬浮窗圆角偏小 | `--radius-lg` 22 → 28px，圆角更向内收 |
 

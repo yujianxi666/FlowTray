@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const root = process.cwd()
-const userData = mkdtempSync(join(tmpdir(), 'flowtray-accept-'))
+const userData = mkdtempSync(join(root, '.tmp-accept-'))
 const shots = join(root, 'screenshots')
 mkdirSync(shots, { recursive: true })
 const env = { ...process.env }
@@ -16,7 +16,7 @@ env.FLOWTRAY_E2E = '1'
 const launch = () =>
   electron.launch({
     executablePath: join(root, 'node_modules', 'electron', 'dist', 'electron.exe'),
-    args: ['.'],
+    args: ['.', ...(process.env.FLOWTRAY_NOSANDBOX === '1' ? ['--no-sandbox'] : [])],
     cwd: root,
     env
   })

@@ -30,7 +30,7 @@ FlowTray 是一个 Windows 桌面文件「中转坞」：从资源管理器、�
 | 存储 | SQLite（Electron 内置 `node:sqlite`，零原生编译依赖） |
 | 文件缓存 | 用户数据目录下的 `storage/files`、`storage/thumbs` |
 | 测试 | Vitest 单元测试 + Playwright Electron 端到端测试 + 原生拖拽模拟 |
-| 打包 | electron-builder（NSIS 安装包 + Portable） |
+| 打包 | electron-builder（Portable；NSIS 配置保留） |
 
 没有任何原生 Node 插件；`node:sqlite` 随 Electron 内置，避免了 `better-sqlite3` 的 ABI 重编译问题。
 
@@ -48,7 +48,8 @@ pnpm dev
 ```powershell
 pnpm build
 pnpm dist:dir   # 生成 release/win-unpacked/FlowTray.exe，便于快速验证
-pnpm dist       # 生成 NSIS 安装包 + Portable
+pnpm dist       # 生成 Portable（当前交付方式）
+pnpm dist:installer  # 尝试生成 NSIS 安装包（可能被本机安装器策略拦截）
 ```
 
 产物位于 `release/`。当前没有代码签名证书，Windows SmartScreen 可能提示「未知发布者」；这是未签名本地应用的预期行为。
@@ -143,14 +144,25 @@ node tests/e2e/dragout.mjs        # 真实 OS 鼠标拖出到资源管理器（�
 已实测结果（本机 2048×1152 DIP / 125% 缩放 / Windows 11）：
 
 - 单元测试：**38 passed**
-- E2E：全部通过；50 卡加载约 252ms，滚动约 105ms
-- 全局快捷键：隐藏约 115ms / 呼出约 3ms（< 1 秒）
-- 边缘唤出：约 525ms（默认 450ms 停留 + 轮询）；1/4 屏宽提示条约 32×180
+- E2E：全部通过；50 卡加载约 238ms，滚动约 96ms
+- 全局快捷键：隐藏约 103ms / 呼出约 2ms（< 1 秒）
+- 边缘唤出：约 564ms（默认 450ms 停留 + 轮询）；1/4 屏宽提示条约 32×180
+- 打包冒烟：Portable/解包版启动、DB/storage、剪贴板、快捷键、主题默认值全部通过
 - 自动隐藏：setup 后聚焦窗口并触发 blur 事件，窗口在 220ms 事件路径 / 600ms 看门狗内隐藏
 - 原生拖出到资源管理器：成功；目标出现 `产品需求.pdf`，源文件仍在，卡片仍在
 - 桌面截图：悬浮窗在屏幕右边缘置顶正常显示，无外圈黑边
 
 详见 [测试计划](docs/04-test-plan.md)。
+
+## 本轮体积/内存优化
+
+没有换技术栈，做了三项针对性优化：
+
+1. **软件渲染**：`app.disableHardwareAcceleration()`。悬浮窗是静态小面板，GPU 私有内存从约 95MB 降到约 40MB，整体私有内存 285MB → 200MB，工作集 424MB → 392MB。代价是动画期间更多使用 CPU；对本应用可接受。
+2. **裁剪 Chromium 可选运行时**：打包后删除 `chrome_200_percent.pak`、`dxcompiler.dll`、`d3dcompiler_47.dll`（约 30MB 解包空间），Portable 从 104.5MB 降到 96.2MB。软件渲染不需要 DX 编译器；已在 125% 缩放和打包冒烟中验证。
+3. **保留 4 个进程但缩小每个进程**：主进程约 125MB、软件 GPU 约 87MB、渲染进程约 120MB、utility 约 53MB（工作集，7s idle 实测）。没有为了减少进程数做不稳定的 `--in-process-gpu` 合并。
+
+没有改用 Tauri/WinUI 的原因：当前收益主要来自 Chromium 运行时裁剪和软件渲染；重写会丢掉原生文件拖放、剪贴板、托盘和 Windows 透明窗口的现成能力，周期与回归风险远大于本轮收益。要稳定进入 150MB 内存/80MB 安装包，才值得重写。
 
 ## 已知限制与设计取舍
 
@@ -164,7 +176,8 @@ node tests/e2e/dragout.mjs        # 真实 OS 鼠标拖出到资源管理器（�
 - **剪贴板监听**：默认关闭；开启后每 0.7 秒读取一次本机剪贴板，前台应用命中排除列表时跳过。剪贴板文件通过 `text/uri-list` 写回，已在资源管理器验证可粘贴。
 - **应用级拖出目标差异**：微信、QQ、Outlook 等对文件/文件夹/文本的接受方式不同，不能保证每个版本都接受所有类型；「复制到剪贴板」是兜底方案。建议按测试计划逐项做人工回归。
 - **主题配色**：深/浅模式各有两个颜色（背景、强调色），文字深浅按背景亮度自动切换；极端配色仍可能降低部分类型徽标的对比度，建议选同明度背景。
-- **代码/资源体积**：Electron 安装包约 104–116MB（Portable 104.5MB / NSIS 116MB），运行时 4 个进程约 412–424MB 工作集/285MB 私有内存；换来的是跨应用拖拽、透明毛玻璃、复杂交互与更快的 UI 迭代。已做语言包裁剪、最高压缩、设置页懒加载、单窗口边缘提示和去掉系统 acrylic 等优化；要降到 100MB/150MB 以内需要重写为 Tauri/WinUI。
+- **代码/资源体积**：Portable **96.2MB**（上一版 104.5MB），解包应用约 330MB；运行时 4 个进程约 **392MB 工作集 / 200MB 私有内存**（上一版 424MB / 285MB）。已做软件渲染、Chromium 可选运行时裁剪、语言包裁剪、最高压缩、设置页懒加载、单窗口边缘提示、去掉系统 acrylic 等优化；要再降到 150MB 内存/80MB 安装包以内需要重写为 Tauri/WinUI，本轮没有换技术栈。
+- **NSIS 安装包**：本轮本机执行生成的安装器时被 Windows 安装器执行策略拦截（`process failed 2`），因此只交付 Portable；安装器配置和签名入口保留，可在正常桌面会话重建。
 - **数据目录**：卸载默认保留数据，便于重装恢复；需要彻底清理请使用应用内「重置全部本地数据」。
 
 ## 产品文档

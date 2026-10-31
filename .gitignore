@@ -9,3 +9,4 @@ release/
 /screenshots/
 tests/e2e/artifacts/
 tests/drop-target/
+.tmp-*/

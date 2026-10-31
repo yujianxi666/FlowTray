@@ -85,10 +85,13 @@
 | 拖出复制 | 硬链接/junction 暂存 | 直接拖源路径 | 防止目标应用"移动"原文件 |
 | 透明 | CSS 半透明 + backdrop-filter，不使用系统 acrylic | 系统 acrylic | 透明窗 + 系统材质会在卡片外露出半透明/黑色矩形边框；改为 CSS 后无外圈 |
 | 主题配色 | 每个模式 2 个 hex（背景/强调色），运行时写 CSS 变量 | 固定一套品牌色 | 满足深/浅独立修改；文字对比按背景亮度计算 |
-| 打包 | 仅 zh-CN/en-US 语言包 + 最高压缩 | 全语言包 | 安装包 116MB / Portable 104.5MB |
+| 渲染 | 软件渲染（`disableHardwareAcceleration`） | GPU 加速 | 悬浮窗是静态小面；私有内存 285MB→200MB，工作集 424MB→392MB |
+| 体积 | 裁剪 Chromium 可选运行时（DX 编译器/200% pak） | 保留完整运行时 | 约 30MB 解包空间；Portable 104.5MB→96.2MB；与软件渲染绑定 |
+| 打包 | 仅 zh-CN/en-US 语言包 + 最高压缩 | 全语言包 | Portable 96.2MB；NSIS 本机构建被策略拦截，配置保留 |
 | 边缘唤出 | 光标轮询 | 全局鼠标钩子 | 无需管理员、无安全软件误报 |
 | 状态 | 主进程快照 + Zustand | 每组件 IPC | 单窗口，简单一致 |
-| 打包 | NSIS + Portable | MSIX | MSIX 签名/证书链复杂；NSIS 可控 |
+| 技术栈 | 继续 Electron，不做 Tauri 重写 | Tauri/WinUI | 重写会丢跨应用拖放/托盘/透明窗现成能力；本轮优化已把 Portable 降到 96.2MB、私有内存 200MB |
+| 打包 | Portable 交付；NSIS 配置保留 | MSIX | NSIS 生成后本机执行被拦截；Portable 已验证 |
 | 更新 | 暂不做 | electron-updater | MVP 先保可用与数据安全 |
 
 ## 5. 需要自己长期维护的东西

@@ -25,6 +25,7 @@ export class ShelfWindow {
   private shownFocused = false
   private lastFocusAt = 0
   private lastBlurAt = 0
+  private edgeGraceUntil = 0
   private mode: WindowMode = 'hidden'
 
   constructor(private readonly settings: SettingsStore) {}
@@ -170,6 +171,7 @@ export class ShelfWindow {
       if (this.mode !== 'full') return
       if (!this.settings.get().hideOnBlur) return
       if (!this.shownFocused || this.interactionLocked) return
+      if (Date.now() < this.edgeGraceUntil) return
       if (Date.now() - this.lastShowAt < 700) return
       if (this.lastBlurAt > this.lastFocusAt) {
         if (Date.now() - this.lastBlurAt < 500) return
@@ -262,10 +264,11 @@ export class ShelfWindow {
       win.setFocusable(true)
     }
     this.mode = 'full'
+    this.edgeGraceUntil = reason === 'edge' ? Date.now() + 2500 : 0
     this.positionAndSize(reason)
     if (win.isMinimized()) win.restore()
-    this.shownFocused = focus && reason !== 'edge'
-    if (focus && reason !== 'edge') {
+    this.shownFocused = focus
+    if (focus) {
       this.lastFocusAt = Date.now()
       win.show()
       win.moveTop()

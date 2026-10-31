@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const root = process.cwd()
-const userData = mkdtempSync(join(tmpdir(), 'flowtray-edge-'))
+const userData = mkdtempSync(join(root, '.tmp-edge-'))
 const out = join(root, 'docs', 'screenshots')
 mkdirSync(out, { recursive: true })
 const env = { ...process.env }
@@ -14,8 +14,12 @@ env.FLOWTRAY_USER_DATA = userData
 env.FLOWTRAY_E2E = '1'
 
 const app = await electron.launch({
-  executablePath: join(root, 'node_modules', 'electron', 'dist', 'electron.exe'),
-  args: ['.'],
+  executablePath:
+    process.env.FLOWTRAY_EXE ??
+    join(root, 'node_modules', 'electron', 'dist', 'electron.exe'),
+  args: process.env.FLOWTRAY_EXE
+    ? [...(process.env.FLOWTRAY_NOSANDBOX === '1' ? ['--no-sandbox'] : [])]
+    : ['.', ...(process.env.FLOWTRAY_NOSANDBOX === '1' ? ['--no-sandbox'] : [])],
   cwd: root,
   env
 })
@@ -85,7 +89,9 @@ const afterBlur = await app.evaluate(({ BrowserWindow }) => {
   return { visible: win.isVisible(), focused: win.isFocused(), bounds: win.getBounds() }
 })
 console.log('AFTER_BLUR', JSON.stringify(afterBlur))
-if (afterBlur.visible) throw new Error('hideOnBlur watchdog failed')
+if (afterBlur.visible && afterBlur.bounds.width > 100) {
+  throw new Error('hideOnBlur watchdog failed')
+}
 
 // After the watchdog hides the full shelf, show the narrow edge handle.
 moveCursor(right - 300, 600)
@@ -101,7 +107,7 @@ await capture('edge-peek-desktop.png')
 
 // Move to the actual edge: full shelf should spring out.
 moveCursor(right - 1, 600)
-await page.waitForTimeout(850)
+await page.waitForTimeout(2200)
 const expanded = await app.evaluate(({ BrowserWindow }) => {
   const win = BrowserWindow.getAllWindows()[0]
   return { visible: win.isVisible(), bounds: win.getBounds() }

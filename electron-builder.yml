@@ -5,6 +5,7 @@ directories:
   buildResources: build
   output: release
 compression: maximum
+afterPack: scripts/after-pack.cjs
 electronLanguages:
   - zh-CN
   - en-US
@@ -30,7 +31,7 @@ win:
 nsis:
   oneClick: false
   perMachine: false
-  allowElevation: true
+  allowElevation: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
