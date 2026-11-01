@@ -29,3 +29,5 @@ legacy-electron/
 
 # personal registry mirror (not published)
 .npmrc
+
+scripts
