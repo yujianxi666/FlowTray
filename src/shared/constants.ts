@@ -70,7 +70,6 @@ export const SETTINGS_SECTIONS: Array<{
   { id: 'storage', label: '存储与清理', hint: '有效期、容量与位置' },
   { id: 'drag', label: '拖拽', hint: '复制、剪切与切换键' },
   { id: 'privacy', label: '剪贴板与隐私', hint: '监听、排除与数据' },
-  { id: 'shortcuts', label: '快捷键', hint: '呼出与剪贴板存入' },
   { id: 'about', label: '关于', hint: '版本与本地数据' }
 ]
 

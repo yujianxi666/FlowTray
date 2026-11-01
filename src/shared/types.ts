@@ -19,7 +19,7 @@ export type ThemeMode = 'system' | 'dark' | 'light'
 export type DockSide = 'left' | 'right'
 export type DragModifier = 'ctrl' | 'shift' | 'alt'
 export type ViewMode = 'list' | 'grid'
-export type ItemSource = 'drop' | 'clipboard' | 'manual'
+export type ItemSource = 'drop' | 'clipboard' | 'clipboard_auto' | 'manual'
 export type SettingsSection =
   | 'general'
   | 'shelf'
@@ -100,7 +100,7 @@ export interface HotkeyStatus {
 
 export interface HostInfo {
   version: string
-  electronVersion: string
+  runtimeVersion: string
   platform: string
   isPackaged: boolean
   isElevated: boolean

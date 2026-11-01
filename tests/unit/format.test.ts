@@ -6,7 +6,7 @@ import {
   formatShortTtl,
   humanTypeLabel,
   truncateMiddle
-} from '@shared/format'
+} from '../../src/shared/format'
 
 describe('format helpers', () => {
   it('formats bytes with sensible precision', () => {

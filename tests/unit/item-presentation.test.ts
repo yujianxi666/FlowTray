@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ShelfItemView } from '@shared/types'
+import type { ShelfItemView } from '../../src/shared/types'
 import {
   fileTypeClass,
   invertedEffect,
@@ -11,7 +11,7 @@ import {
   sourceLabel,
   ttlTone,
   typeLabel
-} from '@renderer/lib/utils'
+} from '../../src/lib/utils'
 
 const base: ShelfItemView = {
   id: 'it_1',

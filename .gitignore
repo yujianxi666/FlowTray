@@ -1,12 +1,28 @@
+# frontend dependencies
 node_modules/
-out/
+
+# build outputs
 dist/
+src-tauri/target/
+src-tauri/gen/
 release/
-*.log
-.DS_Store
+
+# local runs, screenshots, temp data
+.tmp/
+.tmp-*/
+tests/e2e/artifacts/
+data/
+/screenshots/
+
+# secrets and logs
 .env
 .env.local
-/screenshots/
-tests/e2e/artifacts/
-tests/drop-target/
-.tmp-*/
+*.log
+*.dmp
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# historical Electron implementation (kept locally, not published)
+legacy-electron/

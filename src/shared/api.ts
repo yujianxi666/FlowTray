@@ -72,6 +72,7 @@ export interface FlowTrayApi {
   settings: {
     update(patch: Partial<Settings>): Promise<SettingsUpdateResult>
     reset(): Promise<SettingsUpdateResult>
+    exportConfig(): Promise<{ ok: boolean; message?: string }>
     chooseStorageDir(): Promise<{ ok: boolean; message?: string; path?: string }>
     openStorageDir(): Promise<void>
     openDataDir(): Promise<void>
@@ -82,6 +83,7 @@ export interface FlowTrayApi {
     resizeLive(width: number, height: number): void
     resizeEnd(): void
     setInteractionLock(locked: boolean): void
+    hideReady(): void
   }
   shortcuts: {
     suspend(): Promise<void>

@@ -4,7 +4,7 @@ import {
   isSensitiveSource,
   normalizeSettings,
   sanitizeSensitiveList
-} from '@shared/settings'
+} from '../../src/shared/settings'
 
 describe('settings normalization', () => {
   it('fills missing keys with defaults', () => {

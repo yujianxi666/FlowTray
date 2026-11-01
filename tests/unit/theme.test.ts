@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { themeVariables } from '@renderer/lib/theme'
+import { themeVariables } from '../../src/lib/theme'
 
 describe('theme color variables', () => {
   it('derives a readable dark theme from black + white', () => {

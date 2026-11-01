@@ -1,36 +1,25 @@
 {
   "name": "flowtray",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "private": true,
-  "description": "FlowTray 流转台 — 拖入即流转，用完即清理。跨应用文件中转坞。",
+  "type": "module",
+  "description": "FlowTray 流转台 — 拖入即流转，用完即清理。基于 Tauri 2 的跨应用文件中转坞。",
   "author": "FlowTray",
   "license": "MIT",
-  "main": "./out/main/index.js",
-  "engines": {
-    "node": ">=22.12"
-  },
   "scripts": {
-    "dev": "electron-vite dev",
-    "start": "electron-vite preview",
-    "build": "electron-vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "node tests/e2e/acceptance.mjs",
-    "test:hotkey": "node tests/e2e/hotkey.mjs",
-    "test:ui": "node tests/e2e/shortcuts.mjs && node tests/e2e/edge-peek.mjs && node tests/e2e/theme-colors.mjs && node tests/e2e/hotkey-migration.mjs",
-    "test:all": "pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e && pnpm test:hotkey",
-    "dist": "pnpm build && electron-builder --win portable",
-    "dist:installer": "pnpm build && electron-builder --win nsis",
-    "dist:dir": "pnpm build && electron-builder --win --dir"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron",
-      "esbuild"
-    ]
+    "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "rust:build": "cargo build --release --manifest-path src-tauri/Cargo.toml --features custom-protocol",
+    "app:dev": "vite build && cargo run --manifest-path src-tauri/Cargo.toml",
+    "app:build": "pnpm build && pnpm rust:build"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.9.0",
     "lucide-react": "^1.65.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -38,16 +27,12 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
-    "@types/node": "^26.6.6",
+    "@types/node": "^22.10.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "electron": "45.1.0",
-    "electron-builder": "^26.18.0",
-    "electron-vite": "^6.0.0",
-    "playwright-core": "^1.64.1",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0"
   }
 }
