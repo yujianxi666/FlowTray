@@ -26,3 +26,6 @@ Thumbs.db
 
 # historical Electron implementation (kept locally, not published)
 legacy-electron/
+
+# personal registry mirror (not published)
+.npmrc
